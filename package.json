@@ -1,0 +1,16 @@
+{
+  "name": "elm-test",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:jasepellerin/elmTest.git",
+  "author": "<jasepellerin@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "rm -rf dist && mkdir dist && cp -a src/static/. dist && elm-live src/Main.elm --dir=dist/ --start-page=index.html -- --output=dist/main.js",
+    "build": "elm make src/Main.elm --output=dist/main.js && cp -a src/static/. dist"
+  },
+  "devDependencies": {
+    "elm": "^0.19.0-no-deps",
+    "elm-live": "^4.0.0"
+  }
+}

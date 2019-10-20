@@ -1,0 +1,6 @@
+node_modules/
+elm-stuff
+repl-temp-*
+dist
+# Local Netlify folder
+.netlify

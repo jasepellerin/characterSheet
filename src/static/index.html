@@ -1,0 +1,27 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>notorious</title>
+    <script src="main.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Space+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/dark.min.css">
+    <link rel="stylesheet" href="/styles/main.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+</head>
+
+<body>
+    <div id="elm"></div>
+    <script>
+        var getDiceResult = function (numSides) {
+            return Math.floor(Math.ceil(Math.random() * numSides))
+        }
+
+        var app = Elm.Main.init({
+            node: document.getElementById('elm')
+        });
+    </script>
+</body>
+</html>
