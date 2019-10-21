@@ -1,11 +1,8 @@
 # Custom Character Sheet
 A custom, dynamic character sheet for a custom system I made. Could be modified to work with other systems, but will not do so out of the box.
 
-- [notorious](#notorious)
+- [Custom Character Sheet](#custom-character-sheet)
   - [Status](#status)
-  - [Notes](#notes)
-  - [Get the Netlify CLI](#get-the-netlify-cli)
-  - [Add FaunaDB](#add-faunadb)
   - [Run locally](#run-locally)
 
 ## Status
