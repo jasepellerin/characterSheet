@@ -49,7 +49,7 @@ modelInit =
     { characterData =
         { characterName = "New Character"
         , level = 1
-        , armorType = "light"
+        , armorType = "none"
         , strength = 1
         , perception = 1
         , endurance = 1
@@ -186,7 +186,15 @@ view model =
                     ]
                 , div [ class "standout", title (String.fromInt modifiers.acBase ++ " + Armor Bonus of " ++ String.fromInt (getArmorBonus data.armorType)) ]
                     [ h2 [] [ text "Armor Class" ]
-                    , h3 [] [ text (String.fromInt (getArmorClass data.armorType)) ]
+                    , h3 [] [ text (String.fromInt (getTotalArmorClass data.armorType)) ]
+                    ]
+                , div [ class "standout" ]
+                    [ h2 [] [ text "Move Cost" ]
+                    , h3 [] [ text (String.fromInt (modifiers.moveCostBase - (data.agility - modifiers.attributeToMod)) ++ " AP") ]
+                    ]
+                , div [ class "standout", title ("Maximum number of tiles moved in a turn (" ++ String.fromInt modifiers.maxMovesBase ++ " +  Agility modifier - Armor penalties)") ]
+                    [ h2 [] [ text "Speed" ]
+                    , h3 [] [ text (String.fromInt (getMaxMoves data) ++ " Tiles") ]
                     ]
                 ]
             , section [ class "additionalInfo" ]
@@ -250,23 +258,38 @@ getArmorListOrderedByArmorClass =
     List.map Tuple.first (List.sortBy (\armorTuple -> .armorClass (Tuple.second armorTuple)) (Dict.toList armors))
 
 
-getArmorClass : String -> Int
-getArmorClass armorType =
+getTotalArmorClass : String -> Int
+getTotalArmorClass armorType =
     modifiers.acBase + getArmorBonus armorType
+
+
+getMaxMoves : CharacterData -> Int
+getMaxMoves { agility, armorType, endurance } =
+    case maybeArmor armorType of
+        Just armor ->
+            if endurance < armor.enduranceRequirement then
+                Basics.max 0 (modifiers.maxMovesBase + (agility - modifiers.attributeToMod) + armor.maxMovePenalty + modifiers.enduranceMaxMovePenalty)
+
+            else
+                Basics.max 0 (modifiers.maxMovesBase + armor.maxMovePenalty)
+
+        Nothing ->
+            0
 
 
 getArmorBonus : String -> Int
 getArmorBonus armorType =
-    let
-        maybeArmor =
-            Dict.get armorType armors
-    in
-    case maybeArmor of
+    case maybeArmor armorType of
         Just armor ->
             armor.armorClass
 
         Nothing ->
             0
+
+
+maybeArmor : String -> Maybe Armor
+maybeArmor armorType =
+    Dict.get armorType armors
 
 
 getHitpoints : Int -> Int -> Int
@@ -280,6 +303,10 @@ modifiers =
     , hpEnduranceMod = 20
     , hpLevelMod = 5
     , acBase = 12
+    , moveCostBase = 3
+    , maxMovesBase = 3
+    , enduranceMoveCostPenalty = 2
+    , enduranceMaxMovePenalty = -1
     }
 
 
@@ -293,9 +320,10 @@ type alias Armor =
 
 armors =
     Dict.fromList
-        [ ( "light", Armor 1 2 0 0 )
-        , ( "medium", Armor 3 5 0 1 )
-        , ( "heavy", Armor 5 7 1 2 )
+        [ ( "none", Armor 0 0 0 0 )
+        , ( "light", Armor 1 2 -1 1 )
+        , ( "medium", Armor 3 5 -1 2 )
+        , ( "heavy", Armor 5 7 -2 3 )
         ]
 
 
