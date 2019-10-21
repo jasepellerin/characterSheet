@@ -59,7 +59,7 @@ section {
 
 .standout h2 {
     margin-bottom: .25em;
-    border-bottom: 2px solid;
+    border-bottom: 2px rgba(var(--main-color), .5) solid;
 }
 
 .attributes {
