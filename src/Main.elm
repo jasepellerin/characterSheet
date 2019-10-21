@@ -218,3 +218,15 @@ attributeView model ( attributeName, attribute ) =
 capitalizeFirstLetter : String -> String
 capitalizeFirstLetter string =
     String.toUpper (String.left 1 string) ++ String.dropLeft 1 string
+
+
+getHitpoints : Int -> Int -> Int
+getHitpoints level endurance =
+    modifiers.hpBase + modifiers.hpLevelMod * level + modifiers.hpEnduranceMod * endurance
+
+
+modifiers =
+    { hpBase = 95
+    , hpEnduranceMod = 20
+    , hpLevelMod = 5
+    }
