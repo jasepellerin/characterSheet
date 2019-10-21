@@ -163,6 +163,9 @@ updateWithHistory msg historyModel =
                 "control" ->
                     ( { historyModel | controlDown = value }, Cmd.none )
 
+                "meta" ->
+                    ( { historyModel | controlDown = value }, Cmd.none )
+
                 "shift" ->
                     ( { historyModel | shiftDown = value }, Cmd.none )
 
