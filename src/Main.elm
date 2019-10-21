@@ -1,13 +1,14 @@
 module Main exposing (Model, Msg(..), init, main, update, view)
 
 import Browser
+import Browser.Dom as Dom
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onDoubleClick, onInput, stopPropagationOn)
-import Json.Decode exposing (decodeString, int, list)
-import List.Extra
+import Json.Decode as Decode exposing (decodeString, int, list)
 import Ports
+import Task
 
 
 main : Program () Model Msg
@@ -97,7 +98,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         EditAttribute attributeName ->
-            ( { model | editingAttribute = attributeName }, Cmd.none )
+            ( { model | editingAttribute = attributeName }, Task.attempt (always NoOp) (Dom.focus attributeName) )
 
         NoOp ->
             ( model, Cmd.none )
@@ -226,10 +227,10 @@ attributes =
 attributeView : Model -> ( String, Attribute CharacterData Int ) -> Html Msg
 attributeView model ( attributeName, attribute ) =
     if attributeName == model.editingAttribute then
-        div [ stopPropagationOn "click" (Json.Decode.succeed ( NoOp, True )), class "standout attribute" ]
+        div [ stopPropagationOn "click" (Decode.succeed ( NoOp, True )), class "standout attribute" ]
             [ h2 [] [ text (capitalizeFirstLetter attributeName) ]
             , input
-                [ value (String.fromInt (attribute.accessor model.characterData)), onInput (UpdateAttribute << attribute.updateMsg), type_ "number", maxlength 2 ]
+                [ onInput (UpdateAttribute << attribute.updateMsg), type_ "number", maxlength 2, id attributeName ]
                 []
             ]
 
