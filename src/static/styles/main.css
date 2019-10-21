@@ -81,13 +81,16 @@ section {
     width: 60px;
 }
 
+.attribute input, .additionalInfo select {
+    font-size: 1.5em;
+    font-weight: 600;
+    text-align: center;
+}
+
 .attribute input, .additionalInfo select, .additionalInfo option {
     margin: 0;
     background: rgba(var(--main-color), .2);
-    font-size: 1.5em;
-    font-weight: 600;
     color: unset;
-    text-align: center;
 }
 
 .derivedStatistics {

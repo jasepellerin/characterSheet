@@ -230,7 +230,7 @@ attributeView model ( attributeName, attribute ) =
         div [ stopPropagationOn "click" (Decode.succeed ( NoOp, True )), class "standout attribute" ]
             [ h2 [] [ text (capitalizeFirstLetter attributeName) ]
             , input
-                [ on "change" (changeDecoder (UpdateAttribute << attribute.updateMsg)), type_ "number", maxlength 2, id attributeName ]
+                [ on "blur" (Decode.succeed StopEditing), on "change" (changeDecoder (UpdateAttribute << attribute.updateMsg)), type_ "number", maxlength 2, id attributeName ]
                 []
             ]
 
