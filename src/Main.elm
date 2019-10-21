@@ -24,11 +24,7 @@ main =
 -- MODEL
 
 
-type alias Roll =
-    List Int
-
-
-type alias Model =
+type alias CharacterData =
     { characterName : String
     , level : Int
     , strength : Int
@@ -38,20 +34,27 @@ type alias Model =
     , intelligence : Int
     , agility : Int
     , luck : Int
+    }
+
+
+type alias Model =
+    { data : CharacterData
     , editingAttribute : String
     }
 
 
 modelInit =
-    { characterName = "New Character"
-    , level = 1
-    , strength = 1
-    , perception = 1
-    , endurance = 1
-    , charisma = 1
-    , intelligence = 1
-    , agility = 1
-    , luck = 1
+    { data =
+        { characterName = "New Character"
+        , level = 1
+        , strength = 1
+        , perception = 1
+        , endurance = 1
+        , charisma = 1
+        , intelligence = 1
+        , agility = 1
+        , luck = 1
+        }
     , editingAttribute = ""
     }
 
@@ -73,6 +76,7 @@ subscriptions model =
 type Msg
     = EditAttribute String
     | NoOp
+    | StopEditing
     | UpdateAbilityScore UpdateAbilityScoreMsg
 
 
@@ -95,33 +99,36 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
+        StopEditing ->
+            ( { model | editingAttribute = "" }, Cmd.none )
+
         UpdateAbilityScore abilityMsg ->
-            updateAbilityScore abilityMsg model
+            ( { model | data = updateAbilityScore abilityMsg model.data }, Cmd.none )
 
 
-updateAbilityScore : UpdateAbilityScoreMsg -> Model -> ( Model, Cmd Msg )
-updateAbilityScore abilityMsg model =
+updateAbilityScore : UpdateAbilityScoreMsg -> CharacterData -> CharacterData
+updateAbilityScore abilityMsg data =
     case abilityMsg of
         UpdateStrength value ->
-            ( { model | strength = getValidAttributeScoreFromInput model.strength value }, Cmd.none )
+            { data | strength = getValidAttributeScoreFromInput data.strength value }
 
         UpdatePerception value ->
-            ( { model | perception = getValidAttributeScoreFromInput model.perception value }, Cmd.none )
+            { data | perception = getValidAttributeScoreFromInput data.perception value }
 
         UpdateEndurance value ->
-            ( { model | endurance = getValidAttributeScoreFromInput model.endurance value }, Cmd.none )
+            { data | endurance = getValidAttributeScoreFromInput data.endurance value }
 
         UpdateCharisma value ->
-            ( { model | charisma = getValidAttributeScoreFromInput model.charisma value }, Cmd.none )
+            { data | charisma = getValidAttributeScoreFromInput data.charisma value }
 
         UpdateIntelligence value ->
-            ( { model | intelligence = getValidAttributeScoreFromInput model.intelligence value }, Cmd.none )
+            { data | intelligence = getValidAttributeScoreFromInput data.intelligence value }
 
         UpdateAgility value ->
-            ( { model | agility = getValidAttributeScoreFromInput model.agility value }, Cmd.none )
+            { data | agility = getValidAttributeScoreFromInput data.agility value }
 
         UpdateLuck value ->
-            ( { model | luck = getValidAttributeScoreFromInput model.luck value }, Cmd.none )
+            { data | luck = getValidAttributeScoreFromInput data.luck value }
 
 
 getIntFromInput : String -> Int
@@ -155,8 +162,8 @@ getValidAttributeScoreFromInput modelValue value =
 view : Model -> Browser.Document Msg
 view model =
     { body =
-        [ main_ [ onClick (EditAttribute "") ]
-            [ header [] [ h1 [] [ text model.characterName ], h1 [] [ text ("Level " ++ String.fromInt model.level) ] ]
+        [ main_ [ onClick StopEditing ]
+            [ header [] [ h1 [] [ text model.data.characterName ], h1 [] [ text ("Level " ++ String.fromInt model.data.level) ] ]
             , section []
                 (List.map
                     (attributeView model)
@@ -166,7 +173,7 @@ view model =
             , section [] [ text "Col 3" ]
             ]
         ]
-    , title = "Character Sheet - " ++ model.characterName
+    , title = "Character Sheet - " ++ model.data.characterName
     }
 
 
@@ -187,35 +194,20 @@ attributes =
     ]
 
 
-stringifyResult : List Roll -> String
-stringifyResult result =
-    String.join ", "
-        (List.map stringifyRoll result)
-
-
-stringifyRoll : Roll -> String
-stringifyRoll roll_ =
-    let
-        stringRoll =
-            List.map (\value -> String.fromInt value) roll_
-    in
-    "[" ++ String.join ", " stringRoll ++ "]"
-
-
-attributeView : Model -> ( String, Attribute Model Int ) -> Html Msg
+attributeView : Model -> ( String, Attribute CharacterData Int ) -> Html Msg
 attributeView model ( attributeName, attribute ) =
     if attributeName == model.editingAttribute then
         div [ stopPropagationOn "click" (Json.Decode.succeed ( NoOp, True )), class "attribute" ]
             [ h2 [] [ text (capitalizeFirstLetter attributeName) ]
             , input
-                [ value (String.fromInt (attribute.accessor model)), onInput (UpdateAbilityScore << attribute.updateMsg), type_ "number", maxlength 2 ]
+                [ value (String.fromInt (attribute.accessor model.data)), onInput (UpdateAbilityScore << attribute.updateMsg), type_ "number", maxlength 2 ]
                 []
             ]
 
     else
         div [ onDoubleClick (EditAttribute attributeName), class "attribute" ]
             [ h2 [] [ text (capitalizeFirstLetter attributeName) ]
-            , h2 [] [ text (String.fromInt (attribute.accessor model)) ]
+            , h2 [] [ text (String.fromInt (attribute.accessor model.data)) ]
             ]
 
 
