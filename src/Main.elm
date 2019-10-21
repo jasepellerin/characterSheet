@@ -188,7 +188,7 @@ view model =
                     [ h2 [] [ text "Armor Class" ]
                     , h3 [] [ text (String.fromInt (getTotalArmorClass data.armorType)) ]
                     ]
-                , div [ class "standout" ]
+                , div [ class "standout", title ("AP cost of moving one tile (" ++ String.fromInt modifiers.moveCostBase ++ " +  Agility modifier - Armor penalties)") ]
                     [ h2 [] [ text "Move Cost" ]
                     , h3 [] [ text (String.fromInt (modifiers.moveCostBase - (data.agility - modifiers.attributeToMod)) ++ " AP") ]
                     ]
@@ -198,10 +198,10 @@ view model =
                     ]
                 ]
             , section [ class "additionalInfo" ]
-                [ div [ class "standout" ]
+                [ div [ class "standout", title (String.join "\n\n" (List.map getReadableArmorData (getArmorListOrderedByArmorClass armors))) ]
                     [ h2 [] [ text "Armor Type" ]
                     , select [ onInput UpdateArmor ]
-                        (List.map (armorToOption data.armorType) getArmorListOrderedByArmorClass)
+                        (List.map (armorToOption data.armorType) (List.map Tuple.first (getArmorListOrderedByArmorClass armors)))
                     ]
                 ]
             ]
@@ -248,14 +248,30 @@ attributeView model ( attributeName, attribute ) =
         createAttributeView (onDoubleClick (EditAttribute attributeName)) (h3 [] [ text (String.fromInt (attribute.accessor model.characterData)) ])
 
 
+getReadableArmorData : ( String, Armor ) -> String
+getReadableArmorData ( armorName, armor ) =
+    String.join " "
+        [ capitalizeFirstLetter armorName
+        , "|"
+        , String.fromInt armor.armorClass
+        , "AC |"
+        , String.fromInt armor.maxMovePenalty
+        , "speed | Moves cost"
+        , String.fromInt armor.moveCostPenalty
+        , "more AP | Requires"
+        , String.fromInt armor.enduranceRequirement
+        , "Endurance to wear correctly"
+        ]
+
+
 capitalizeFirstLetter : String -> String
 capitalizeFirstLetter string =
     String.toUpper (String.left 1 string) ++ String.dropLeft 1 string
 
 
-getArmorListOrderedByArmorClass : List String
-getArmorListOrderedByArmorClass =
-    List.map Tuple.first (List.sortBy (\armorTuple -> .armorClass (Tuple.second armorTuple)) (Dict.toList armors))
+getArmorListOrderedByArmorClass : Dict String Armor -> List ( String, Armor )
+getArmorListOrderedByArmorClass armorList =
+    List.sortBy (\armorTuple -> .armorClass (Tuple.second armorTuple)) (Dict.toList armorList)
 
 
 getTotalArmorClass : String -> Int
