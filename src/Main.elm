@@ -5,8 +5,8 @@ import Browser.Dom as Dom
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick, onDoubleClick, onInput, stopPropagationOn)
-import Json.Decode as Decode exposing (decodeString, int, list)
+import Html.Events exposing (on, onClick, onDoubleClick, onInput, stopPropagationOn)
+import Json.Decode as Decode exposing (at, decodeString, string)
 import Ports
 import Task
 
@@ -114,7 +114,7 @@ update msg model =
             ( { model | characterData = { characterData | armorType = newArmor } }, Cmd.none )
 
         UpdateAttribute abilityMsg ->
-            ( { model | characterData = updateAttributeScore abilityMsg model.characterData }, Cmd.none )
+            ( { model | characterData = updateAttributeScore abilityMsg model.characterData, editingAttribute = "" }, Cmd.none )
 
 
 updateAttributeScore : UpdateAttributeMsg -> CharacterData -> CharacterData
@@ -177,7 +177,7 @@ view model =
             model.characterData
     in
     { body =
-        [ main_ [ onClick StopEditing ]
+        [ main_ []
             [ header [] [ h1 [] [ text data.characterName ], h1 [] [ text ("Level " ++ String.fromInt data.level) ] ]
             , section [ class "attributes" ]
                 (List.map
@@ -230,7 +230,7 @@ attributeView model ( attributeName, attribute ) =
         div [ stopPropagationOn "click" (Decode.succeed ( NoOp, True )), class "standout attribute" ]
             [ h2 [] [ text (capitalizeFirstLetter attributeName) ]
             , input
-                [ onInput (UpdateAttribute << attribute.updateMsg), type_ "number", maxlength 2, id attributeName ]
+                [ on "change" (changeDecoder (UpdateAttribute << attribute.updateMsg)), type_ "number", maxlength 2, id attributeName ]
                 []
             ]
 
@@ -302,3 +302,13 @@ armors =
 armorToOption : String -> String -> Html Msg
 armorToOption selectedArmor armorName =
     option [ value armorName, selected (armorName == selectedArmor) ] [ text (capitalizeFirstLetter armorName) ]
+
+
+changeDecoder : (String -> Msg) -> Decode.Decoder Msg
+changeDecoder msg =
+    Decode.map (valueToMsg msg) (at [ "target", "value" ] string)
+
+
+valueToMsg : (String -> Msg) -> String -> Msg
+valueToMsg msg value =
+    msg value
