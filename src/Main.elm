@@ -206,7 +206,7 @@ attributeView : Model -> ( String, Attribute Model Int ) -> Html Msg
 attributeView model ( attributeName, attribute ) =
     if attributeName == model.editingAttribute then
         div [ stopPropagationOn "click" (Json.Decode.succeed ( NoOp, True )), class "attribute" ]
-            [ h3 [] [ text (capitalizeFirstLetter attributeName) ]
+            [ h2 [] [ text (capitalizeFirstLetter attributeName) ]
             , input
                 [ value (String.fromInt (attribute.accessor model)), onInput (UpdateAbilityScore << attribute.updateMsg), type_ "number", maxlength 2 ]
                 []
@@ -214,7 +214,7 @@ attributeView model ( attributeName, attribute ) =
 
     else
         div [ onDoubleClick (EditAttribute attributeName), class "attribute" ]
-            [ h3 [] [ text (capitalizeFirstLetter attributeName) ]
+            [ h2 [] [ text (capitalizeFirstLetter attributeName) ]
             , h2 [] [ text (String.fromInt (attribute.accessor model)) ]
             ]
 
