@@ -193,9 +193,9 @@ view model =
                     [ h2 [] [ text "Hit Points" ]
                     , h3 [] [ text (String.fromInt (getHitpoints data.level data.endurance)) ]
                     ]
-                , div [ class "standout", title (String.fromInt modifiers.acBase ++ " + Armor Bonus of " ++ String.fromInt (getArmorBonus data.armorType)) ]
+                , div [ encumberedClasses, title (String.fromInt modifiers.acBase ++ " + Armor Bonus of " ++ String.fromInt (getArmorBonus data)) ]
                     [ h2 [] [ text "Armor Class" ]
-                    , h3 [] [ text (String.fromInt (getTotalArmorClass data.armorType)) ]
+                    , h3 [] [ text (String.fromInt (getTotalArmorClass data)) ]
                     ]
                 , div [ encumberedClasses, title ("AP cost of moving one tile (" ++ String.fromInt modifiers.moveCostBase ++ " +  Agility modifier - Armor penalties)") ]
                     [ h2 [] [ text "Move Cost" ]
@@ -211,7 +211,7 @@ view model =
                     ]
                 ]
             , section [ class "additionalInfo" ]
-                [ div [ class "standout", title (String.join "\n\n" (List.map getReadableArmorData (getArmorListOrderedByArmorClass armors))) ]
+                [ div [ encumberedClasses, title (String.join "\n\n" (List.map getReadableArmorData (getArmorListOrderedByArmorClass armors))) ]
                     [ h2 [] [ text "Armor Type" ]
                     , select [ onInput UpdateArmor ]
                         (List.map (armorToOption data.armorType) (List.map Tuple.first (getArmorListOrderedByArmorClass armors)))
@@ -291,9 +291,23 @@ getArmorListOrderedByArmorClass armorList =
     List.sortBy (\armorTuple -> .armorClass (Tuple.second armorTuple)) (Dict.toList armorList)
 
 
-getTotalArmorClass : String -> Int
-getTotalArmorClass armorType =
-    modifiers.acBase + getArmorBonus armorType
+getTotalArmorClass : CharacterData -> Int
+getTotalArmorClass data =
+    modifiers.acBase + getArmorBonus data
+
+
+getArmorBonus : CharacterData -> Int
+getArmorBonus { armorType, endurance } =
+    case maybeArmor armorType of
+        Just armor ->
+            if endurance < armor.enduranceRequirement then
+                Basics.max 0 (armor.armorClass + modifiers.encumberancePenalty)
+
+            else
+                Basics.max 0 armor.armorClass
+
+        Nothing ->
+            0
 
 
 getMoveCost : CharacterData -> Int
@@ -356,16 +370,6 @@ getApModifier data encumbered =
 
     else
         baseApModifier
-
-
-getArmorBonus : String -> Int
-getArmorBonus armorType =
-    case maybeArmor armorType of
-        Just armor ->
-            armor.armorClass
-
-        Nothing ->
-            0
 
 
 getArmorEnduranceRequirement : String -> Int
