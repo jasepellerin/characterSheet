@@ -48,14 +48,21 @@ section {
     align-items: center;
 }
 
-.attribute {
-    width: 200px;
+.section {
     display: flex;
     flex-direction: column;
     align-items: center;
     border-radius: 10px;
     background-color: rgba(var(--main-color), .2);
     padding: 10px;
+}
+
+.attributes {
+    grid-row: 2 / -1;
+}
+
+.attribute {
+    width: 200px;
 }
 
 .attribute:not(:last-child) {
@@ -71,4 +78,10 @@ section {
     font-weight: 600;
     color: unset;
     text-align: center;
+}
+
+.derivedStatistics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr auto;
 }
