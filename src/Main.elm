@@ -232,7 +232,11 @@ attributeView model ( attributeName, attribute ) =
     let
         createAttributeView : Attribute Msg -> Html Msg -> Html Msg
         createAttributeView clickHandler attributeElement =
-            div [ class "standout attribute", clickHandler ]
+            div
+                [ class "standout attribute"
+                , clickHandler
+                , title ("Modifier is " ++ String.fromInt (attribute.accessor model.characterData - modifiers.attributeToMod))
+                ]
                 [ h2 [] [ text (capitalizeFirstLetter attributeName) ]
                 , attributeElement
                 ]
