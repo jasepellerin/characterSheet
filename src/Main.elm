@@ -4,7 +4,7 @@ import Browser
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick, onInput)
+import Html.Events exposing (onClick, onDoubleClick, onInput, stopPropagationOn)
 import Json.Decode exposing (decodeString, int, list)
 import List.Extra
 import Ports
@@ -71,7 +71,9 @@ subscriptions model =
 
 
 type Msg
-    = UpdateAbilityScore UpdateAbilityScoreMsg
+    = EditAttribute String
+    | NoOp
+    | UpdateAbilityScore UpdateAbilityScoreMsg
 
 
 type UpdateAbilityScoreMsg
@@ -87,6 +89,12 @@ type UpdateAbilityScoreMsg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        EditAttribute attributeName ->
+            ( { model | editingAttribute = attributeName }, Cmd.none )
+
+        NoOp ->
+            ( model, Cmd.none )
+
         UpdateAbilityScore abilityMsg ->
             updateAbilityScore abilityMsg model
 
@@ -144,6 +152,24 @@ getValidAttributeScoreFromInput modelValue value =
 -- VIEW
 
 
+view : Model -> Browser.Document Msg
+view model =
+    { body =
+        [ main_ [ onClick (EditAttribute "") ]
+            [ header [] [ h1 [] [ text model.characterName ], h1 [] [ text ("Level " ++ String.fromInt model.level) ] ]
+            , section []
+                (List.map
+                    (attributeView model)
+                    attributes
+                )
+            , section [] [ text "Col 2" ]
+            , section [] [ text "Col 3" ]
+            ]
+        ]
+    , title = "Character Sheet - " ++ model.characterName
+    }
+
+
 type alias Attribute a b =
     { accessor : a -> b
     , updateMsg : String -> UpdateAbilityScoreMsg
@@ -159,22 +185,6 @@ attributes =
     , ( "agility", Attribute .agility UpdateAgility )
     , ( "luck", Attribute .luck UpdateLuck )
     ]
-
-
-view : Model -> Browser.Document Msg
-view model =
-    { body =
-        [ header [] [ h1 [] [ text model.characterName ], p [] [ text ("Level " ++ String.fromInt model.level) ] ]
-        , section []
-            (List.map
-                (attributeView model)
-                attributes
-            )
-        , section [] [ text "Col 2" ]
-        , section [] [ text "Col 3" ]
-        ]
-    , title = "Character Sheet - " ++ model.characterName
-    }
 
 
 stringifyResult : List Roll -> String
@@ -194,12 +204,19 @@ stringifyRoll roll_ =
 
 attributeView : Model -> ( String, Attribute Model Int ) -> Html Msg
 attributeView model ( attributeName, attribute ) =
-    label []
-        [ text (capitalizeFirstLetter attributeName)
-        , input
-            [ value (String.fromInt (attribute.accessor model)), onInput (UpdateAbilityScore << attribute.updateMsg), type_ "number", maxlength 2 ]
-            []
-        ]
+    if attributeName == model.editingAttribute then
+        div [ stopPropagationOn "click" (Json.Decode.succeed ( NoOp, True )), class "attribute" ]
+            [ h3 [] [ text (capitalizeFirstLetter attributeName) ]
+            , input
+                [ value (String.fromInt (attribute.accessor model)), onInput (UpdateAbilityScore << attribute.updateMsg), type_ "number", maxlength 2 ]
+                []
+            ]
+
+    else
+        div [ onDoubleClick (EditAttribute attributeName), class "attribute" ]
+            [ h3 [] [ text (capitalizeFirstLetter attributeName) ]
+            , h2 [] [ text (String.fromInt (attribute.accessor model)) ]
+            ]
 
 
 capitalizeFirstLetter : String -> String

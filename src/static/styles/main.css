@@ -14,6 +14,9 @@ body {
     width: 100vw;
     max-width: unset;
     background-color: unset;
+}
+
+main {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     grid-template-rows: 50px 1fr;
@@ -33,4 +36,22 @@ section {
     flex-direction: column;
     justify-content: space-around;
     align-items: center;
+}
+
+.attribute {
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 10px;
+    background-color: rgba(20, 20, 20, .3);
+    padding: 10px;
+}
+
+.attribute:not(:last-child) {
+    margin-bottom: 15px;
+}
+
+.attribute input {
+    margin: 0;
 }
