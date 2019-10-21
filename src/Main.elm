@@ -189,19 +189,19 @@ view model =
                     attributes
                 )
             , section [ class "derivedStatistics" ]
-                [ div [ class "standout", title (String.fromInt modifiers.hpBase ++ " + (Level * 5) + (Endurance * 20)") ]
+                [ div [ class "standout", title ("How tanky you are (" ++ String.fromInt modifiers.hpBase ++ " + (Level * 5) + (Endurance * 20)") ]
                     [ h2 [] [ text "Hit Points" ]
                     , h3 [] [ text (String.fromInt (getHitpoints data.level data.endurance) ++ " HP") ]
                     ]
-                , div [ encumberedClasses, title (String.fromInt modifiers.acBase ++ " + Armor Bonus of " ++ String.fromInt (getArmorBonus data)) ]
+                , div [ encumberedClasses, title ("How hard you are to hit (" ++ String.fromInt modifiers.acBase ++ " + Armor Bonus of " ++ String.fromInt (getArmorBonus data)) ]
                     [ h2 [] [ text "Armor Class" ]
                     , h3 [] [ text (String.fromInt (getTotalArmorClass data) ++ " AC") ]
                     ]
-                , div [ encumberedClasses, title ("AP cost of moving one tile (" ++ String.fromInt modifiers.moveCostBase ++ " +  Agility modifier - Armor penalties)") ]
+                , div [ encumberedClasses, title ("AP cost to move on tile (" ++ String.fromInt modifiers.moveCostBase ++ " +  Agility modifier - Armor penalties)") ]
                     [ h2 [] [ text "Move Cost" ]
                     , h3 [] [ text (String.fromInt (getMoveCost data) ++ " AP") ]
                     ]
-                , div [ encumberedClasses, title ("Maximum number of tiles moved in a turn (" ++ String.fromInt modifiers.maxMovesBase ++ " +  Agility modifier - Armor penalties)") ]
+                , div [ encumberedClasses, title ("How far you can move per turn (" ++ String.fromInt modifiers.maxMovesBase ++ " +  Agility modifier - Armor penalties)") ]
                     [ h2 [] [ text "Speed" ]
                     , h3 [] [ text (String.fromInt (getMaxMoves data) ++ " Tiles") ]
                     ]
@@ -230,25 +230,25 @@ type alias CharacterAttribute a b =
 
 
 attributes =
-    [ ( "strength", CharacterAttribute .strength UpdateStrength )
-    , ( "perception", CharacterAttribute .perception UpdatePerception )
-    , ( "endurance", CharacterAttribute .endurance UpdateEndurance )
-    , ( "charisma", CharacterAttribute .charisma UpdateCharisma )
-    , ( "intelligence", CharacterAttribute .intelligence UpdateIntelligence )
-    , ( "agility", CharacterAttribute .agility UpdateAgility )
-    , ( "luck", CharacterAttribute .luck UpdateLuck )
+    [ { attributeName = "strength", attribute = CharacterAttribute .strength UpdateStrength, specificTitle = "💪" }
+    , { attributeName = "perception", attribute = CharacterAttribute .perception UpdatePerception, specificTitle = "🕵" }
+    , { attributeName = "endurance", attribute = CharacterAttribute .endurance UpdateEndurance, specificTitle = "\u{1F98D}" }
+    , { attributeName = "charisma", attribute = CharacterAttribute .charisma UpdateCharisma, specificTitle = "🗣" }
+    , { attributeName = "intelligence", attribute = CharacterAttribute .intelligence UpdateIntelligence, specificTitle = "\u{1F9E0}" }
+    , { attributeName = "agility", attribute = CharacterAttribute .agility UpdateAgility, specificTitle = "🏃" }
+    , { attributeName = "luck", attribute = CharacterAttribute .luck UpdateLuck, specificTitle = "🍀" }
     ]
 
 
-attributeView : Model -> ( String, CharacterAttribute CharacterData Int ) -> Html Msg
-attributeView model ( attributeName, attribute ) =
+attributeView : Model -> { attributeName : String, attribute : CharacterAttribute CharacterData Int, specificTitle : String } -> Html Msg
+attributeView model { attributeName, attribute, specificTitle } =
     let
         createAttributeView : Attribute Msg -> Html Msg -> Html Msg
         createAttributeView clickHandler attributeElement =
             div
                 [ class "standout attribute"
                 , clickHandler
-                , title ("Modifier is " ++ String.fromInt (attribute.accessor model.characterData - modifiers.attributeToMod))
+                , title (specificTitle ++ " Modifier is " ++ String.fromInt (attribute.accessor model.characterData - modifiers.attributeToMod))
                 ]
                 [ h2 [] [ text (capitalizeFirstLetter attributeName) ]
                 , attributeElement
