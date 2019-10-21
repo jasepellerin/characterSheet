@@ -16,7 +16,7 @@ body {
     background-color: unset;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 2fr;
+    grid-template-rows: 50px 1fr;
     grid-column-gap: 10px;
     grid-row-gap: 30px;
 }
@@ -24,6 +24,13 @@ body {
 header {
     grid-column: 1/-1;
     display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+section {
+    display: flex;
+    flex-direction: column;
     justify-content: space-around;
     align-items: center;
 }

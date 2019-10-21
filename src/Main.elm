@@ -1,6 +1,7 @@
 module Main exposing (Model, Msg(..), init, main, update, view)
 
 import Browser
+import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
@@ -37,6 +38,7 @@ type alias Model =
     , intelligence : Int
     , agility : Int
     , luck : Int
+    , editingAttribute : String
     }
 
 
@@ -50,6 +52,7 @@ modelInit =
     , intelligence = 1
     , agility = 1
     , luck = 1
+    , editingAttribute = ""
     }
 
 
@@ -92,25 +95,25 @@ updateAbilityScore : UpdateAbilityScoreMsg -> Model -> ( Model, Cmd Msg )
 updateAbilityScore abilityMsg model =
     case abilityMsg of
         UpdateStrength value ->
-            ( { model | strength = getIntFromInput value }, Cmd.none )
+            ( { model | strength = getValidAttributeScoreFromInput model.strength value }, Cmd.none )
 
         UpdatePerception value ->
-            ( { model | perception = getIntFromInput value }, Cmd.none )
+            ( { model | perception = getValidAttributeScoreFromInput model.perception value }, Cmd.none )
 
         UpdateEndurance value ->
-            ( { model | endurance = getIntFromInput value }, Cmd.none )
+            ( { model | endurance = getValidAttributeScoreFromInput model.endurance value }, Cmd.none )
 
         UpdateCharisma value ->
-            ( { model | charisma = getIntFromInput value }, Cmd.none )
+            ( { model | charisma = getValidAttributeScoreFromInput model.charisma value }, Cmd.none )
 
         UpdateIntelligence value ->
-            ( { model | intelligence = getIntFromInput value }, Cmd.none )
+            ( { model | intelligence = getValidAttributeScoreFromInput model.intelligence value }, Cmd.none )
 
         UpdateAgility value ->
-            ( { model | agility = getIntFromInput value }, Cmd.none )
+            ( { model | agility = getValidAttributeScoreFromInput model.agility value }, Cmd.none )
 
         UpdateLuck value ->
-            ( { model | luck = getIntFromInput value }, Cmd.none )
+            ( { model | luck = getValidAttributeScoreFromInput model.luck value }, Cmd.none )
 
 
 getIntFromInput : String -> Int
@@ -120,11 +123,42 @@ getIntFromInput value =
             int
 
         Nothing ->
-            0
+            -1
+
+
+getValidAttributeScoreFromInput : Int -> String -> Int
+getValidAttributeScoreFromInput modelValue value =
+    let
+        newValue =
+            getIntFromInput value
+    in
+    case newValue >= 1 && newValue <= 10 of
+        True ->
+            newValue
+
+        False ->
+            modelValue
 
 
 
 -- VIEW
+
+
+type alias Attribute a b =
+    { accessor : a -> b
+    , updateMsg : String -> UpdateAbilityScoreMsg
+    }
+
+
+attributes =
+    [ ( "strength", Attribute .strength UpdateStrength )
+    , ( "perception", Attribute .perception UpdatePerception )
+    , ( "endurance", Attribute .endurance UpdateEndurance )
+    , ( "charisma", Attribute .charisma UpdateCharisma )
+    , ( "intelligence", Attribute .intelligence UpdateIntelligence )
+    , ( "agility", Attribute .agility UpdateAgility )
+    , ( "luck", Attribute .luck UpdateLuck )
+    ]
 
 
 view : Model -> Browser.Document Msg
@@ -132,49 +166,10 @@ view model =
     { body =
         [ header [] [ h1 [] [ text model.characterName ], p [] [ text ("Level " ++ String.fromInt model.level) ] ]
         , section []
-            [ label []
-                [ text "Strength"
-                , input
-                    [ value (String.fromInt model.strength), onInput (UpdateAbilityScore << UpdateStrength), type_ "number", maxlength 2 ]
-                    []
-                ]
-            , label []
-                [ text "Perception"
-                , input
-                    [ value (String.fromInt model.perception), onInput (UpdateAbilityScore << UpdatePerception), type_ "number", maxlength 2 ]
-                    []
-                ]
-            , label []
-                [ text "Endurance"
-                , input
-                    [ value (String.fromInt model.endurance), onInput (UpdateAbilityScore << UpdateEndurance), type_ "number", maxlength 2 ]
-                    []
-                ]
-            , label []
-                [ text "Charisma"
-                , input
-                    [ value (String.fromInt model.charisma), onInput (UpdateAbilityScore << UpdateCharisma), type_ "number", maxlength 2 ]
-                    []
-                ]
-            , label []
-                [ text "Intelligence"
-                , input
-                    [ value (String.fromInt model.intelligence), onInput (UpdateAbilityScore << UpdateIntelligence), type_ "number", maxlength 2 ]
-                    []
-                ]
-            , label []
-                [ text "Agility"
-                , input
-                    [ value (String.fromInt model.agility), onInput (UpdateAbilityScore << UpdateAgility), type_ "number", maxlength 2 ]
-                    []
-                ]
-            , label []
-                [ text "Luck"
-                , input
-                    [ value (String.fromInt model.luck), onInput (UpdateAbilityScore << UpdateLuck), type_ "number", maxlength 2 ]
-                    []
-                ]
-            ]
+            (List.map
+                (attributeView model)
+                attributes
+            )
         , section [] [ text "Col 2" ]
         , section [] [ text "Col 3" ]
         ]
@@ -195,3 +190,18 @@ stringifyRoll roll_ =
             List.map (\value -> String.fromInt value) roll_
     in
     "[" ++ String.join ", " stringRoll ++ "]"
+
+
+attributeView : Model -> ( String, Attribute Model Int ) -> Html Msg
+attributeView model ( attributeName, attribute ) =
+    label []
+        [ text (capitalizeFirstLetter attributeName)
+        , input
+            [ value (String.fromInt (attribute.accessor model)), onInput (UpdateAbilityScore << attribute.updateMsg), type_ "number", maxlength 2 ]
+            []
+        ]
+
+
+capitalizeFirstLetter : String -> String
+capitalizeFirstLetter string =
+    String.toUpper (String.left 1 string) ++ String.dropLeft 1 string
