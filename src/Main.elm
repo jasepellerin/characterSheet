@@ -202,42 +202,42 @@ view model =
     }
 
 
-type alias Attribute a b =
+type alias CharacterAttribute a b =
     { accessor : a -> b
     , updateMsg : String -> UpdateAttributeMsg
     }
 
 
 attributes =
-    [ ( "strength", Attribute .strength UpdateStrength )
-    , ( "perception", Attribute .perception UpdatePerception )
-    , ( "endurance", Attribute .endurance UpdateEndurance )
-    , ( "charisma", Attribute .charisma UpdateCharisma )
-    , ( "intelligence", Attribute .intelligence UpdateIntelligence )
-    , ( "agility", Attribute .agility UpdateAgility )
-    , ( "luck", Attribute .luck UpdateLuck )
+    [ ( "strength", CharacterAttribute .strength UpdateStrength )
+    , ( "perception", CharacterAttribute .perception UpdatePerception )
+    , ( "endurance", CharacterAttribute .endurance UpdateEndurance )
+    , ( "charisma", CharacterAttribute .charisma UpdateCharisma )
+    , ( "intelligence", CharacterAttribute .intelligence UpdateIntelligence )
+    , ( "agility", CharacterAttribute .agility UpdateAgility )
+    , ( "luck", CharacterAttribute .luck UpdateLuck )
     ]
 
 
-attributeView : Model -> ( String, Attribute CharacterData Int ) -> Html Msg
+attributeView : Model -> ( String, CharacterAttribute CharacterData Int ) -> Html Msg
 attributeView model ( attributeName, attribute ) =
+    let
+        createAttributeView : Attribute Msg -> Html Msg -> Html Msg
+        createAttributeView clickHandler attributeElement =
+            div [ class "standout attribute", clickHandler ]
+                [ h2 [] [ text (capitalizeFirstLetter attributeName) ]
+                , attributeElement
+                ]
+    in
     if attributeName == model.editingAttribute then
-        div [ stopPropagationOn "click" (Decode.succeed ( NoOp, True )), class "standout attribute" ]
-            [ h2 [] [ text (capitalizeFirstLetter attributeName) ]
-            , input
+        createAttributeView (stopPropagationOn "click" (Decode.succeed ( NoOp, True )))
+            (input
                 [ on "blur" (Decode.succeed StopEditing), on "change" (changeDecoder (UpdateAttribute << attribute.updateMsg)), type_ "number", maxlength 2, id attributeName ]
                 []
-            ]
+            )
 
     else
-        div
-            [ onDoubleClick (EditAttribute attributeName)
-            , class "standout attribute"
-            , title ("Double click to edit. Modifier is " ++ String.fromInt (attribute.accessor model.characterData - modifiers.attributeToMod))
-            ]
-            [ h2 [] [ text (capitalizeFirstLetter attributeName) ]
-            , h3 [] [ text (String.fromInt (attribute.accessor model.characterData)) ]
-            ]
+        createAttributeView (onDoubleClick (EditAttribute attributeName)) (h3 [] [ text (String.fromInt (attribute.accessor model.characterData)) ])
 
 
 capitalizeFirstLetter : String -> String
