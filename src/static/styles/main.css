@@ -105,6 +105,8 @@ section {
     margin: 0;
     background: rgba(var(--main-color), .2);
     color: unset;
+    text-align-last: center;
+    text-align: center;
 }
 
 .derivedStatistics {
