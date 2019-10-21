@@ -19,17 +19,18 @@ body {
     background-color: rgba(var(--main-color), .3);
     color: rgb(var(--main-color));
     font-family: 'Oswald', sans-serif;
-    padding: 1vh 1vw;
+    padding: 0;
     margin: 0;
     width: 100vw;
     max-width: unset;
 }
 
 main {
+    padding: 1vh 1vw;
     min-height: 100vh;
     display: grid;
     grid-template-columns: 15vw auto 15vw;
-    grid-template-rows: 50px 1fr 2fr;
+    grid-template-rows: 50px 1fr 1fr;
     grid-column-gap: 10px;
     grid-row-gap: 30px;
 }
