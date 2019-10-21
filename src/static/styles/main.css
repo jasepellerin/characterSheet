@@ -1,5 +1,7 @@
 * {
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 html {
@@ -7,55 +9,21 @@ html {
 }
 
 body {
+    padding: 1vh 1vw;
+    margin: 0;
+    width: 100vw;
+    max-width: unset;
     background-color: unset;
-    margin: 0 auto 200px;
-    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 2fr;
+    grid-column-gap: 10px;
+    grid-row-gap: 30px;
 }
 
 header {
-    padding: 10px;
+    grid-column: 1/-1;
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around;
     align-items: center;
-    position: relative;
-}
-
-h1 {
-    margin: 0;
-}
-
-article {
-    padding: 4px 10px;
-    background-color: rgb(188, 208, 245);
-    border-radius: 10px;
-}
-
-article:not(:last-child) {
-    margin-bottom: 10px;
-}
-
-article .title {
-    margin-bottom: 10px;
-}
-
-article p {
-    padding: 20px;
-}
-
-article h2, article p, article small {
-    color: rgb(35, 45, 65);
-    margin: 0;
-}
-
-aside {
-    font-family: 'Space Mono', monospace;
-    background: #161f27;
-    border-top: 2px solid;
-    padding: 10px;
-    position: absolute;
-    height: 200px;
-    width: 100vw;
-    overflow-y: scroll;
-    left: 0;
-    bottom: 0;
 }
