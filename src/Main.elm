@@ -197,7 +197,7 @@ view model =
                 [ div [ class "standout" ]
                     [ h2 [] [ text "Armor Type" ]
                     , select [ onInput UpdateArmor ]
-                        (List.map (armorToOption data.armorType) (Dict.keys armors))
+                        (List.map (armorToOption data.armorType) getArmorListOrderedByArmorClass)
                     ]
                 ]
             ]
@@ -243,6 +243,11 @@ attributeView model ( attributeName, attribute ) =
 capitalizeFirstLetter : String -> String
 capitalizeFirstLetter string =
     String.toUpper (String.left 1 string) ++ String.dropLeft 1 string
+
+
+getArmorListOrderedByArmorClass : List String
+getArmorListOrderedByArmorClass =
+    List.map Tuple.first (List.sortBy (\armorTuple -> .armorClass (Tuple.second armorTuple)) (Dict.toList armors))
 
 
 getArmorClass : String -> Int
