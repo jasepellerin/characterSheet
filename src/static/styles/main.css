@@ -25,7 +25,7 @@ body {
     font-family: "Oswald", sans-serif;
     padding: 0;
     margin: 0;
-    width: 100vw;
+    width: 100%;
     max-width: unset;
 }
 
@@ -33,7 +33,7 @@ main {
     background-color: rgba(var(--main-color), 0.2);
     color: rgb(var(--main-color));
     padding: 1vh 1vw;
-    min-height: 100vh;
+    min-height: 100%;
     display: grid;
     grid-template-columns: 15vw auto 15vw;
     grid-template-rows: 50px 1fr 1fr;
