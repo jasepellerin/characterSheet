@@ -9,7 +9,6 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (on, onClick, onDoubleClick, onInput, stopPropagationOn)
 import Json.Decode as Decode exposing (at, decodeString, field, string)
 import Json.Encode as Encode
-import Ports
 import Task
 
 
