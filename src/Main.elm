@@ -158,12 +158,7 @@ getValidAttributeScoreFromInput modelValue value =
         newValue =
             getIntFromInput value
     in
-    case newValue >= 1 && newValue <= 10 of
-        True ->
-            newValue
-
-        False ->
-            modelValue
+    clamp 1 10 newValue
 
 
 
