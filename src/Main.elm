@@ -77,10 +77,10 @@ type Msg
     = EditAttribute String
     | NoOp
     | StopEditing
-    | UpdateAbilityScore UpdateAbilityScoreMsg
+    | UpdateAttribute UpdateAttributeMsg
 
 
-type UpdateAbilityScoreMsg
+type UpdateAttributeMsg
     = UpdateStrength String
     | UpdatePerception String
     | UpdateEndurance String
@@ -102,11 +102,11 @@ update msg model =
         StopEditing ->
             ( { model | editingAttribute = "" }, Cmd.none )
 
-        UpdateAbilityScore abilityMsg ->
+        UpdateAttribute abilityMsg ->
             ( { model | characterData = updateAttributeScore abilityMsg model.characterData }, Cmd.none )
 
 
-updateAttributeScore : UpdateAbilityScoreMsg -> CharacterData -> CharacterData
+updateAttributeScore : UpdateAttributeMsg -> CharacterData -> CharacterData
 updateAttributeScore abilityMsg characterData =
     case abilityMsg of
         UpdateStrength value ->
@@ -183,7 +183,7 @@ view model =
 
 type alias Attribute a b =
     { accessor : a -> b
-    , updateMsg : String -> UpdateAbilityScoreMsg
+    , updateMsg : String -> UpdateAttributeMsg
     }
 
 
@@ -204,7 +204,7 @@ attributeView model ( attributeName, attribute ) =
         div [ stopPropagationOn "click" (Json.Decode.succeed ( NoOp, True )), class "section attribute" ]
             [ h2 [] [ text (capitalizeFirstLetter attributeName) ]
             , input
-                [ value (String.fromInt (attribute.accessor model.characterData)), onInput (UpdateAbilityScore << attribute.updateMsg), type_ "number", maxlength 2 ]
+                [ value (String.fromInt (attribute.accessor model.characterData)), onInput (UpdateAttribute << attribute.updateMsg), type_ "number", maxlength 2 ]
                 []
             ]
 
