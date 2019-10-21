@@ -16,8 +16,6 @@ input[type=number]::-webkit-inner-spin-button {
 }
 
 body {
-    background-color: rgba(var(--main-color), .3);
-    color: rgb(var(--main-color));
     font-family: 'Oswald', sans-serif;
     padding: 0;
     margin: 0;
@@ -26,6 +24,8 @@ body {
 }
 
 main {
+    background-color: rgba(var(--main-color), .2);
+    color: rgb(var(--main-color));
     padding: 1vh 1vw;
     min-height: 100vh;
     display: grid;
