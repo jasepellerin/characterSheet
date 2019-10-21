@@ -184,11 +184,11 @@ view model =
                     attributes
                 )
             , section [ class "derivedStatistics" ]
-                [ div [ class "standout" ]
-                    [ h2 [ title "Test" ] [ text "Hit Points" ]
+                [ div [ class "standout", title (String.fromInt modifiers.hpBase ++ " + (Level * 5) + (Endurance * 20)") ]
+                    [ h2 [] [ text "Hit Points" ]
                     , h3 [] [ text (String.fromInt (getHitpoints data.level data.endurance)) ]
                     ]
-                , div [ class "standout" ]
+                , div [ class "standout", title (String.fromInt modifiers.acBase ++ " + Armor Bonus of " ++ String.fromInt (getArmorBonus data.armorType)) ]
                     [ h2 [] [ text "Armor Class" ]
                     , h3 [] [ text (String.fromInt (getArmorClass data.armorType)) ]
                     ]
@@ -252,16 +252,21 @@ getArmorListOrderedByArmorClass =
 
 getArmorClass : String -> Int
 getArmorClass armorType =
+    modifiers.acBase + getArmorBonus armorType
+
+
+getArmorBonus : String -> Int
+getArmorBonus armorType =
     let
         maybeArmor =
             Dict.get armorType armors
     in
     case maybeArmor of
         Just armor ->
-            modifiers.acBase + armor.armorClass
+            armor.armorClass
 
         Nothing ->
-            modifiers.acBase
+            0
 
 
 getHitpoints : Int -> Int -> Int
