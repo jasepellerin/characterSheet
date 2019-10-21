@@ -2,7 +2,7 @@ module Main exposing (Model, Msg(..), init, main, update, view)
 
 import Browser
 import Browser.Dom as Dom
-import Browser.Events exposing (onKeyDown)
+import Browser.Events exposing (onKeyDown, onKeyUp)
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -49,8 +49,10 @@ type alias Model =
 
 type alias HistoryModel =
     { model : Model
-    , history : List ( Model, Msg )
+    , undoHistory : List Model
+    , history : List Model
     , controlDown : Bool
+    , shiftDown : Bool
     }
 
 
@@ -74,18 +76,20 @@ modelInit =
 historyModelInit =
     { model = modelInit
     , history = []
+    , undoHistory = []
     , controlDown = False
+    , shiftDown = False
     }
 
 
 init : () -> ( HistoryModel, Cmd HistoryMsg )
 init =
-    \_ -> updateWithHistory (UpdateModel True NoOp) historyModelInit
+    always ( historyModelInit, Cmd.none )
 
 
 subscriptions : HistoryModel -> Sub HistoryMsg
 subscriptions model =
-    onKeyDown updateKey
+    Sub.batch [ onKeyDown (updateKey True), onKeyUp (updateKey False) ]
 
 
 
@@ -112,6 +116,7 @@ type Msg
 
 type HistoryMsg
     = HistoryNoOp
+    | Redo
     | Undo
     | UpdateKey String Bool
     | UpdateModel Bool Msg
@@ -123,37 +128,53 @@ updateWithHistory msg historyModel =
         HistoryNoOp ->
             ( historyModel, Cmd.none )
 
+        Redo ->
+            case historyModel.undoHistory of
+                newModel :: newUndoHistory ->
+                    ( { historyModel
+                        | model = { modelInit | characterData = newModel.characterData }
+                        , history = historyModel.model :: historyModel.history
+                        , undoHistory = newUndoHistory
+                      }
+                    , Cmd.none
+                    )
+
+                [] ->
+                    ( historyModel, Cmd.none )
+
         Undo ->
-            let
-                lastState =
-                    List.head historyModel.history
+            case historyModel.history of
+                newModel :: newHistory ->
+                    ( { historyModel
+                        | model =
+                            { modelInit
+                                | characterData = newModel.characterData
+                            }
+                        , history = newHistory
+                        , undoHistory = historyModel.model :: historyModel.undoHistory
+                      }
+                    , Cmd.none
+                    )
 
-                lastHistory =
-                    List.tail historyModel.history
-            in
-            case lastState of
-                Just ( realModel, _ ) ->
-                    case lastHistory of
-                        Just history ->
-                            if List.length history == 0 then
-                                init ()
-
-                            else
-                                ( { historyModel | model = { modelInit | characterData = realModel.characterData }, history = history }, Cmd.none )
-
-                        Nothing ->
-                            init ()
-
-                Nothing ->
+                [] ->
                     ( historyModel, Cmd.none )
 
         UpdateKey key value ->
-            case key of
-                "Control" ->
+            case String.toLower key of
+                "control" ->
                     ( { historyModel | controlDown = value }, Cmd.none )
 
+                "shift" ->
+                    ( { historyModel | shiftDown = value }, Cmd.none )
+
                 "z" ->
-                    if historyModel.controlDown then
+                    if value == False then
+                        ( historyModel, Cmd.none )
+
+                    else if historyModel.controlDown && historyModel.shiftDown then
+                        updateWithHistory Redo historyModel
+
+                    else if historyModel.controlDown then
                         updateWithHistory Undo historyModel
 
                     else
@@ -169,12 +190,12 @@ updateWithHistory msg historyModel =
 
                 history =
                     if updateHistory then
-                        ( historyModel.model, modelMsg ) :: historyModel.history
+                        historyModel.model :: historyModel.history
 
                     else
                         historyModel.history
             in
-            ( { historyModel | model = model, history = history }, cmd )
+            ( { historyModel | model = model, history = history, undoHistory = [] }, cmd )
 
 
 update : Msg -> Model -> ( Model, Cmd HistoryMsg )
@@ -304,32 +325,21 @@ view historyModel =
                     ]
                 ]
             ]
-        , div []
-            [ text (Encode.encode 4 (Encode.list Encode.int (List.foldl (\value listValue -> getPreviousStrength value :: listValue) [] historyModel.history)))
-            ]
         ]
     , title = "Character Sheet - " ++ model.characterData.characterName
     }
 
 
-getPreviousStrength : ( Model, Msg ) -> Int
-getPreviousStrength tuple =
-    (Tuple.first tuple).characterData.strength
+getPreviousStrength : Model -> Int
+getPreviousStrength model =
+    model.characterData.strength
 
 
-updateKey : Decode.Decoder HistoryMsg
-updateKey =
+updateKey : Bool -> Decode.Decoder HistoryMsg
+updateKey value =
     let
         getMsg key =
-            case key of
-                "Control" ->
-                    UpdateKey key True
-
-                "z" ->
-                    UpdateKey key True
-
-                _ ->
-                    HistoryNoOp
+            UpdateKey key value
     in
     Decode.map getMsg (field "key" string)
 
