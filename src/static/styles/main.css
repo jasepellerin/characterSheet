@@ -47,10 +47,11 @@ section {
 }
 
 .standout {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+    justify-items: center;
     align-items: center;
-    justify-content: space-around;
     border-radius: 10px;
     background-color: rgba(var(--main-color), .2);
     padding: 20px 10px;
@@ -87,6 +88,7 @@ section {
 
 .attribute input {
     width: 60px;
+    height: 1.5em;
 }
 
 .additionalInfo select {
