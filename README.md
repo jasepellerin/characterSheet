@@ -12,5 +12,6 @@ A custom, dynamic character sheet for a custom system I made. Could be modified 
 ## Run locally
 
 ```
+yarn install
 yarn dev
 ```
