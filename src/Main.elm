@@ -27,6 +27,7 @@ main =
 type alias CharacterData =
     { characterName : String
     , level : Int
+    , armorType : String
     , strength : Int
     , perception : Int
     , endurance : Int
@@ -47,6 +48,7 @@ modelInit =
     { characterData =
         { characterName = "New Character"
         , level = 1
+        , armorType = "light"
         , strength = 1
         , perception = 1
         , endurance = 1
@@ -73,13 +75,6 @@ subscriptions model =
 -- UPDATE
 
 
-type Msg
-    = EditAttribute String
-    | NoOp
-    | StopEditing
-    | UpdateAttribute UpdateAttributeMsg
-
-
 type UpdateAttributeMsg
     = UpdateStrength String
     | UpdatePerception String
@@ -88,6 +83,14 @@ type UpdateAttributeMsg
     | UpdateIntelligence String
     | UpdateAgility String
     | UpdateLuck String
+
+
+type Msg
+    = EditAttribute String
+    | NoOp
+    | StopEditing
+    | UpdateArmor String
+    | UpdateAttribute UpdateAttributeMsg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -101,6 +104,13 @@ update msg model =
 
         StopEditing ->
             ( { model | editingAttribute = "" }, Cmd.none )
+
+        UpdateArmor newArmor ->
+            let
+                characterData =
+                    model.characterData
+            in
+            ( { model | characterData = { characterData | armorType = newArmor } }, Cmd.none )
 
         UpdateAttribute abilityMsg ->
             ( { model | characterData = updateAttributeScore abilityMsg model.characterData }, Cmd.none )
@@ -173,8 +183,23 @@ view model =
                     (attributeView model)
                     attributes
                 )
-            , section [ class "derivedStatistics" ] [ div [ class "section" ] [ h2 [] [ text "Hit Points" ], h3 [] [ text (String.fromInt (getHitpoints data.level data.endurance)) ] ] ]
-            , section [] [ text "Col 3" ]
+            , section [ class "derivedStatistics" ]
+                [ div [ class "standout" ]
+                    [ h2 [ title "Test" ] [ text "Hit Points" ]
+                    , h3 [] [ text (String.fromInt (getHitpoints data.level data.endurance)) ]
+                    ]
+                , div [ class "standout" ]
+                    [ h2 [] [ text "Armor Class" ]
+                    , h3 [] [ text (String.fromInt (getArmorClass data.armorType)) ]
+                    ]
+                ]
+            , section [ class "additionalInfo" ]
+                [ div [ class "standout" ]
+                    [ h2 [] [ text "Armor Type" ]
+                    , select [ onInput UpdateArmor ]
+                        (List.map (armorToOption data.armorType) (Dict.keys armors))
+                    ]
+                ]
             ]
         ]
     , title = "Character Sheet - " ++ model.characterData.characterName
@@ -201,7 +226,7 @@ attributes =
 attributeView : Model -> ( String, Attribute CharacterData Int ) -> Html Msg
 attributeView model ( attributeName, attribute ) =
     if attributeName == model.editingAttribute then
-        div [ stopPropagationOn "click" (Json.Decode.succeed ( NoOp, True )), class "section attribute" ]
+        div [ stopPropagationOn "click" (Json.Decode.succeed ( NoOp, True )), class "standout attribute" ]
             [ h2 [] [ text (capitalizeFirstLetter attributeName) ]
             , input
                 [ value (String.fromInt (attribute.accessor model.characterData)), onInput (UpdateAttribute << attribute.updateMsg), type_ "number", maxlength 2 ]
@@ -209,15 +234,29 @@ attributeView model ( attributeName, attribute ) =
             ]
 
     else
-        div [ onDoubleClick (EditAttribute attributeName), class "section attribute" ]
+        div [ onDoubleClick (EditAttribute attributeName), class "standout attribute" ]
             [ h2 [] [ text (capitalizeFirstLetter attributeName) ]
-            , h2 [] [ text (String.fromInt (attribute.accessor model.characterData)) ]
+            , h3 [] [ text (String.fromInt (attribute.accessor model.characterData)) ]
             ]
 
 
 capitalizeFirstLetter : String -> String
 capitalizeFirstLetter string =
     String.toUpper (String.left 1 string) ++ String.dropLeft 1 string
+
+
+getArmorClass : String -> Int
+getArmorClass armorType =
+    let
+        maybeArmor =
+            Dict.get armorType armors
+    in
+    case maybeArmor of
+        Just armor ->
+            modifiers.acBase + armor.armorClass
+
+        Nothing ->
+            modifiers.acBase
 
 
 getHitpoints : Int -> Int -> Int
@@ -229,4 +268,26 @@ modifiers =
     { hpBase = 95
     , hpEnduranceMod = 20
     , hpLevelMod = 5
+    , acBase = 12
     }
+
+
+type alias Armor =
+    { armorClass : Int
+    , enduranceRequirement : Int
+    , maxMovePenalty : Int
+    , moveCostPenalty : Int
+    }
+
+
+armors =
+    Dict.fromList
+        [ ( "light", Armor 1 2 0 0 )
+        , ( "medium", Armor 3 5 0 1 )
+        , ( "heavy", Armor 5 7 1 2 )
+        ]
+
+
+armorToOption : String -> String -> Html Msg
+armorToOption selectedArmor armorName =
+    option [ value armorName, selected (armorName == selectedArmor) ] [ text (capitalizeFirstLetter armorName) ]
