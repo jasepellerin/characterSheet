@@ -170,6 +170,15 @@ view model =
     let
         data =
             model.characterData
+
+        encumbered =
+            data.endurance < getArmorEnduranceRequirement data.armorType
+
+        encumberedClasses =
+            classList
+                [ ( "standout", True )
+                , ( "encumbered", encumbered )
+                ]
     in
     { body =
         [ main_ []
@@ -188,13 +197,17 @@ view model =
                     [ h2 [] [ text "Armor Class" ]
                     , h3 [] [ text (String.fromInt (getTotalArmorClass data.armorType)) ]
                     ]
-                , div [ class "standout", title ("AP cost of moving one tile (" ++ String.fromInt modifiers.moveCostBase ++ " +  Agility modifier - Armor penalties)") ]
+                , div [ encumberedClasses, title ("AP cost of moving one tile (" ++ String.fromInt modifiers.moveCostBase ++ " +  Agility modifier - Armor penalties)") ]
                     [ h2 [] [ text "Move Cost" ]
                     , h3 [] [ text (String.fromInt (getMoveCost data) ++ " AP") ]
                     ]
-                , div [ class "standout", title ("Maximum number of tiles moved in a turn (" ++ String.fromInt modifiers.maxMovesBase ++ " +  Agility modifier - Armor penalties)") ]
+                , div [ encumberedClasses, title ("Maximum number of tiles moved in a turn (" ++ String.fromInt modifiers.maxMovesBase ++ " +  Agility modifier - Armor penalties)") ]
                     [ h2 [] [ text "Speed" ]
                     , h3 [] [ text (String.fromInt (getMaxMoves data) ++ " Tiles") ]
+                    ]
+                , div [ encumberedClasses, title ("Modifier to AP roll (" ++ String.fromInt modifiers.apBase ++ " +  Agility score - Armor penalties)") ]
+                    [ h2 [] [ text "AP Modifier" ]
+                    , h3 [] [ text (getApModifierText data encumbered ++ " AP") ]
                     ]
                 ]
             , section [ class "additionalInfo" ]
@@ -259,9 +272,9 @@ getReadableArmorData ( armorName, armor ) =
         , "|"
         , String.fromInt armor.armorClass
         , "AC |"
-        , String.fromInt armor.maxMovePenalty
+        , String.fromInt armor.penalty
         , "speed | Moves cost"
-        , String.fromInt armor.moveCostPenalty
+        , String.fromInt armor.penalty
         , "more AP | Requires"
         , String.fromInt armor.enduranceRequirement
         , "Endurance to wear correctly"
@@ -289,10 +302,10 @@ getMoveCost { agility, armorType, endurance } =
         Just armor ->
             let
                 unencumberedMoveCost =
-                    modifiers.moveCostBase - (agility - modifiers.attributeToMod) + armor.moveCostPenalty
+                    modifiers.moveCostBase - (agility - modifiers.attributeToMod) - armor.penalty
             in
             if endurance < armor.enduranceRequirement then
-                Basics.max 0 (unencumberedMoveCost + modifiers.enduranceMoveCostPenalty)
+                Basics.max 0 (unencumberedMoveCost - 2 * modifiers.encumberancePenalty)
 
             else
                 Basics.max 0 unencumberedMoveCost
@@ -307,10 +320,10 @@ getMaxMoves { agility, armorType, endurance } =
         Just armor ->
             let
                 unencumberedMaxMoves =
-                    modifiers.maxMovesBase + (agility - modifiers.attributeToMod) + armor.maxMovePenalty
+                    modifiers.maxMovesBase + (agility - modifiers.attributeToMod) + armor.penalty
             in
             if endurance < armor.enduranceRequirement then
-                Basics.max 0 (unencumberedMaxMoves + modifiers.enduranceMaxMovePenalty)
+                Basics.max 0 (unencumberedMaxMoves + modifiers.encumberancePenalty)
 
             else
                 Basics.max 0 unencumberedMaxMoves
@@ -319,11 +332,47 @@ getMaxMoves { agility, armorType, endurance } =
             0
 
 
+getApModifierText : CharacterData -> Bool -> String
+getApModifierText data encumbered =
+    let
+        apModifier =
+            getApModifier data encumbered
+    in
+    if apModifier > 0 then
+        "+ " ++ String.fromInt apModifier
+
+    else
+        String.fromInt apModifier
+
+
+getApModifier : CharacterData -> Bool -> Int
+getApModifier data encumbered =
+    let
+        baseApModifier =
+            modifiers.apBase + data.agility
+    in
+    if encumbered then
+        baseApModifier + (4 * modifiers.encumberancePenalty)
+
+    else
+        baseApModifier
+
+
 getArmorBonus : String -> Int
 getArmorBonus armorType =
     case maybeArmor armorType of
         Just armor ->
             armor.armorClass
+
+        Nothing ->
+            0
+
+
+getArmorEnduranceRequirement : String -> Int
+getArmorEnduranceRequirement armorType =
+    case maybeArmor armorType of
+        Just armor ->
+            armor.enduranceRequirement
 
         Nothing ->
             0
@@ -340,32 +389,31 @@ getHitpoints level endurance =
 
 
 modifiers =
-    { attributeToMod = 5
+    { apBase = 10
+    , attributeToMod = 5
     , hpBase = 95
     , hpEnduranceMod = 20
     , hpLevelMod = 5
     , acBase = 12
     , moveCostBase = 3
     , maxMovesBase = 5
-    , enduranceMoveCostPenalty = 4
-    , enduranceMaxMovePenalty = -2
+    , encumberancePenalty = -2
     }
 
 
 type alias Armor =
     { armorClass : Int
     , enduranceRequirement : Int
-    , maxMovePenalty : Int
-    , moveCostPenalty : Int
+    , penalty : Int
     }
 
 
 armors =
     Dict.fromList
-        [ ( "none", Armor 0 0 0 0 )
-        , ( "light", Armor 1 2 -1 1 )
-        , ( "medium", Armor 3 5 -2 2 )
-        , ( "heavy", Armor 5 7 -3 3 )
+        [ ( "none", Armor 0 0 0 )
+        , ( "light", Armor 1 2 -1 )
+        , ( "medium", Armor 3 5 -2 )
+        , ( "heavy", Armor 5 7 -3 )
         ]
 
 
