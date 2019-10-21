@@ -67,6 +67,7 @@ section {
 
 .attribute {
     width: 200px;
+    cursor: pointer;
 }
 
 .attribute h3 {
@@ -79,6 +80,10 @@ section {
 
 .attribute input {
     width: 60px;
+}
+
+.additionalInfo select {
+    cursor: pointer;
 }
 
 .attribute input, .additionalInfo select {

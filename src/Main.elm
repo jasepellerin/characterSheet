@@ -230,7 +230,11 @@ attributeView model ( attributeName, attribute ) =
             ]
 
     else
-        div [ onDoubleClick (EditAttribute attributeName), class "standout attribute" ]
+        div
+            [ onDoubleClick (EditAttribute attributeName)
+            , class "standout attribute"
+            , title ("Double click to edit. Modifier is " ++ String.fromInt (attribute.accessor model.characterData - modifiers.attributeToMod))
+            ]
             [ h2 [] [ text (capitalizeFirstLetter attributeName) ]
             , h3 [] [ text (String.fromInt (attribute.accessor model.characterData)) ]
             ]
@@ -271,7 +275,8 @@ getHitpoints level endurance =
 
 
 modifiers =
-    { hpBase = 95
+    { attributeToMod = 5
+    , hpBase = 95
     , hpEnduranceMod = 20
     , hpLevelMod = 5
     , acBase = 12
