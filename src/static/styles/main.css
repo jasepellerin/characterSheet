@@ -26,6 +26,7 @@ body {
 }
 
 main {
+    min-height: 100vh;
     display: grid;
     grid-template-columns: 15vw auto 15vw;
     grid-template-rows: 50px 1fr 2fr;
@@ -68,6 +69,7 @@ section {
 
 .attribute {
     cursor: pointer;
+    height: 7em;
 }
 
 .attribute, .additionalInfo .standout {
@@ -80,7 +82,7 @@ section {
 }
 
 .attribute:not(:last-child) {
-    margin-bottom: 15px;
+    margin-bottom: .5em;
 }
 
 .attribute input {
