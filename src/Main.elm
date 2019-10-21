@@ -190,7 +190,7 @@ view model =
                     ]
                 , div [ class "standout", title ("AP cost of moving one tile (" ++ String.fromInt modifiers.moveCostBase ++ " +  Agility modifier - Armor penalties)") ]
                     [ h2 [] [ text "Move Cost" ]
-                    , h3 [] [ text (String.fromInt (modifiers.moveCostBase - (data.agility - modifiers.attributeToMod)) ++ " AP") ]
+                    , h3 [] [ text (String.fromInt (getMoveCost data) ++ " AP") ]
                     ]
                 , div [ class "standout", title ("Maximum number of tiles moved in a turn (" ++ String.fromInt modifiers.maxMovesBase ++ " +  Agility modifier - Armor penalties)") ]
                     [ h2 [] [ text "Speed" ]
@@ -279,15 +279,37 @@ getTotalArmorClass armorType =
     modifiers.acBase + getArmorBonus armorType
 
 
+getMoveCost : CharacterData -> Int
+getMoveCost { agility, armorType, endurance } =
+    case maybeArmor armorType of
+        Just armor ->
+            let
+                unencumberedMoveCost =
+                    modifiers.moveCostBase - (agility - modifiers.attributeToMod) + armor.moveCostPenalty
+            in
+            if endurance < armor.enduranceRequirement then
+                Basics.max 0 (unencumberedMoveCost + modifiers.enduranceMoveCostPenalty)
+
+            else
+                Basics.max 0 unencumberedMoveCost
+
+        Nothing ->
+            0
+
+
 getMaxMoves : CharacterData -> Int
 getMaxMoves { agility, armorType, endurance } =
     case maybeArmor armorType of
         Just armor ->
+            let
+                unencumberedMaxMoves =
+                    modifiers.maxMovesBase + (agility - modifiers.attributeToMod) + armor.maxMovePenalty
+            in
             if endurance < armor.enduranceRequirement then
-                Basics.max 0 (modifiers.maxMovesBase + (agility - modifiers.attributeToMod) + armor.maxMovePenalty + modifiers.enduranceMaxMovePenalty)
+                Basics.max 0 (unencumberedMaxMoves + modifiers.enduranceMaxMovePenalty)
 
             else
-                Basics.max 0 (modifiers.maxMovesBase + armor.maxMovePenalty)
+                Basics.max 0 unencumberedMaxMoves
 
         Nothing ->
             0
@@ -320,9 +342,9 @@ modifiers =
     , hpLevelMod = 5
     , acBase = 12
     , moveCostBase = 3
-    , maxMovesBase = 3
-    , enduranceMoveCostPenalty = 2
-    , enduranceMaxMovePenalty = -1
+    , maxMovesBase = 5
+    , enduranceMoveCostPenalty = 4
+    , enduranceMaxMovePenalty = -2
     }
 
 
@@ -338,8 +360,8 @@ armors =
     Dict.fromList
         [ ( "none", Armor 0 0 0 0 )
         , ( "light", Armor 1 2 -1 1 )
-        , ( "medium", Armor 3 5 -1 2 )
-        , ( "heavy", Armor 5 7 -2 3 )
+        , ( "medium", Armor 3 5 -2 2 )
+        , ( "heavy", Armor 5 7 -3 3 )
         ]
 
 
