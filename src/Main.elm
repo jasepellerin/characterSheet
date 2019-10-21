@@ -2,21 +2,23 @@ module Main exposing (Model, Msg(..), init, main, update, view)
 
 import Browser
 import Browser.Dom as Dom
+import Browser.Events exposing (onKeyDown)
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (on, onClick, onDoubleClick, onInput, stopPropagationOn)
-import Json.Decode as Decode exposing (at, decodeString, string)
+import Json.Decode as Decode exposing (at, decodeString, field, string)
+import Json.Encode as Encode
 import Ports
 import Task
 
 
-main : Program () Model Msg
+main : Program () HistoryModel HistoryMsg
 main =
     Browser.document
         { init = init
         , subscriptions = subscriptions
-        , update = update
+        , update = updateWithHistory
         , view = view
         }
 
@@ -45,6 +47,13 @@ type alias Model =
     }
 
 
+type alias HistoryModel =
+    { model : Model
+    , history : List ( Model, Msg )
+    , controlDown : Bool
+    }
+
+
 modelInit =
     { characterData =
         { characterName = "New Character"
@@ -62,14 +71,21 @@ modelInit =
     }
 
 
-init : () -> ( Model, Cmd Msg )
+historyModelInit =
+    { model = modelInit
+    , history = []
+    , controlDown = False
+    }
+
+
+init : () -> ( HistoryModel, Cmd HistoryMsg )
 init =
-    always ( modelInit, Cmd.none )
+    \_ -> updateWithHistory (UpdateModel True NoOp) historyModelInit
 
 
-subscriptions : Model -> Sub Msg
+subscriptions : HistoryModel -> Sub HistoryMsg
 subscriptions model =
-    Sub.none
+    onKeyDown updateKey
 
 
 
@@ -94,11 +110,78 @@ type Msg
     | UpdateAttribute UpdateAttributeMsg
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+type HistoryMsg
+    = HistoryNoOp
+    | Undo
+    | UpdateKey String Bool
+    | UpdateModel Bool Msg
+
+
+updateWithHistory : HistoryMsg -> HistoryModel -> ( HistoryModel, Cmd HistoryMsg )
+updateWithHistory msg historyModel =
+    case msg of
+        HistoryNoOp ->
+            ( historyModel, Cmd.none )
+
+        Undo ->
+            let
+                lastState =
+                    List.head historyModel.history
+
+                lastHistory =
+                    List.tail historyModel.history
+            in
+            case lastState of
+                Just ( realModel, _ ) ->
+                    case lastHistory of
+                        Just history ->
+                            if List.length history == 0 then
+                                init ()
+
+                            else
+                                ( { historyModel | model = { modelInit | characterData = realModel.characterData }, history = history }, Cmd.none )
+
+                        Nothing ->
+                            init ()
+
+                Nothing ->
+                    ( historyModel, Cmd.none )
+
+        UpdateKey key value ->
+            case key of
+                "Control" ->
+                    ( { historyModel | controlDown = value }, Cmd.none )
+
+                "z" ->
+                    if historyModel.controlDown then
+                        updateWithHistory Undo historyModel
+
+                    else
+                        ( historyModel, Cmd.none )
+
+                _ ->
+                    ( historyModel, Cmd.none )
+
+        UpdateModel updateHistory modelMsg ->
+            let
+                ( model, cmd ) =
+                    update modelMsg historyModel.model
+
+                history =
+                    if updateHistory then
+                        ( historyModel.model, modelMsg ) :: historyModel.history
+
+                    else
+                        historyModel.history
+            in
+            ( { historyModel | model = model, history = history }, cmd )
+
+
+update : Msg -> Model -> ( Model, Cmd HistoryMsg )
 update msg model =
     case msg of
         EditAttribute attributeName ->
-            ( { model | editingAttribute = attributeName }, Task.attempt (always NoOp) (Dom.focus attributeName) )
+            ( { model | editingAttribute = attributeName }, Task.attempt (always HistoryNoOp) (Dom.focus attributeName) )
 
         NoOp ->
             ( model, Cmd.none )
@@ -165,9 +248,12 @@ getValidAttributeScoreFromInput modelValue value =
 -- VIEW
 
 
-view : Model -> Browser.Document Msg
-view model =
+view : HistoryModel -> Browser.Document HistoryMsg
+view historyModel =
     let
+        model =
+            historyModel.model
+
         data =
             model.characterData
 
@@ -185,7 +271,7 @@ view model =
             [ header [] [ h1 [] [ text data.characterName ], h1 [] [ text ("Level " ++ String.fromInt data.level) ] ]
             , section [ class "attributes" ]
                 (List.map
-                    (attributeView model)
+                    (attributeView UpdateModel model)
                     attributes
                 )
             , section [ class "derivedStatistics" ]
@@ -213,14 +299,39 @@ view model =
             , section [ class "additionalInfo" ]
                 [ div [ encumberedClasses, title (String.join "\n\n" (List.map getReadableArmorData (getArmorListOrderedByArmorClass armors))) ]
                     [ h2 [] [ text "Armor Type" ]
-                    , select [ onInput UpdateArmor ]
+                    , select [ onInput (UpdateModel True << UpdateArmor) ]
                         (List.map (armorToOption data.armorType) (List.map Tuple.first (getArmorListOrderedByArmorClass armors)))
                     ]
                 ]
             ]
+        , div []
+            [ text (Encode.encode 4 (Encode.list Encode.int (List.foldl (\value listValue -> getPreviousStrength value :: listValue) [] historyModel.history)))
+            ]
         ]
     , title = "Character Sheet - " ++ model.characterData.characterName
     }
+
+
+getPreviousStrength : ( Model, Msg ) -> Int
+getPreviousStrength tuple =
+    (Tuple.first tuple).characterData.strength
+
+
+updateKey : Decode.Decoder HistoryMsg
+updateKey =
+    let
+        getMsg key =
+            case key of
+                "Control" ->
+                    UpdateKey key True
+
+                "z" ->
+                    UpdateKey key True
+
+                _ ->
+                    HistoryNoOp
+    in
+    Decode.map getMsg (field "key" string)
 
 
 type alias CharacterAttribute a b =
@@ -240,10 +351,10 @@ attributes =
     ]
 
 
-attributeView : Model -> { attributeName : String, attribute : CharacterAttribute CharacterData Int, specificTitle : String } -> Html Msg
-attributeView model { attributeName, attribute, specificTitle } =
+attributeView : (Bool -> Msg -> HistoryMsg) -> Model -> { attributeName : String, attribute : CharacterAttribute CharacterData Int, specificTitle : String } -> Html HistoryMsg
+attributeView historyMsg model { attributeName, attribute, specificTitle } =
     let
-        createAttributeView : Attribute Msg -> Html Msg -> Html Msg
+        createAttributeView : Attribute HistoryMsg -> Html HistoryMsg -> Html HistoryMsg
         createAttributeView clickHandler attributeElement =
             div
                 [ class "standout attribute"
@@ -255,14 +366,14 @@ attributeView model { attributeName, attribute, specificTitle } =
                 ]
     in
     if attributeName == model.editingAttribute then
-        createAttributeView (stopPropagationOn "click" (Decode.succeed ( NoOp, True )))
+        createAttributeView (stopPropagationOn "click" (Decode.succeed ( HistoryNoOp, True )))
             (input
-                [ on "blur" (Decode.succeed StopEditing), on "change" (changeDecoder (UpdateAttribute << attribute.updateMsg)), type_ "number", maxlength 2, id attributeName ]
+                [ on "blur" (Decode.succeed (historyMsg False StopEditing)), on "change" (changeDecoder (historyMsg True << UpdateAttribute << attribute.updateMsg)), type_ "number", maxlength 2, id attributeName ]
                 []
             )
 
     else
-        createAttributeView (onDoubleClick (EditAttribute attributeName)) (h3 [] [ text (String.fromInt (attribute.accessor model.characterData)) ])
+        createAttributeView (onDoubleClick (historyMsg False (EditAttribute attributeName))) (h3 [] [ text (String.fromInt (attribute.accessor model.characterData)) ])
 
 
 getReadableArmorData : ( String, Armor ) -> String
@@ -421,16 +532,16 @@ armors =
         ]
 
 
-armorToOption : String -> String -> Html Msg
+armorToOption : String -> String -> Html HistoryMsg
 armorToOption selectedArmor armorName =
     option [ value armorName, selected (armorName == selectedArmor) ] [ text (capitalizeFirstLetter armorName) ]
 
 
-changeDecoder : (String -> Msg) -> Decode.Decoder Msg
+changeDecoder : (String -> HistoryMsg) -> Decode.Decoder HistoryMsg
 changeDecoder msg =
     Decode.map (valueToMsg msg) (at [ "target", "value" ] string)
 
 
-valueToMsg : (String -> Msg) -> String -> Msg
+valueToMsg : (String -> HistoryMsg) -> String -> HistoryMsg
 valueToMsg msg value =
     msg value
