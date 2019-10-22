@@ -33,7 +33,7 @@ main {
     background-color: rgba(var(--main-color), 0.2);
     color: rgb(var(--main-color));
     padding: 1vh 1vw;
-    min-height: 100%;
+    min-height: 100vh;
     display: grid;
     grid-template-columns: 15vw auto 15vw;
     grid-template-rows: 50px 1fr 1fr;
