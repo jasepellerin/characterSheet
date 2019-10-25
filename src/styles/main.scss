@@ -1,4 +1,4 @@
-@import '~materialize-css/dist/css/materialize.css';
-@import './resets.scss';
-@import './variables/colors.scss';
-@import './general.scss';
+@import '~materialize-css/dist/css/materialize.min.css';
+@import 'base/resets';
+@import 'variables/colors';
+@import 'partials/components';
