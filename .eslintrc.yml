@@ -1,0 +1,104 @@
+extends: airbnb
+parser: babel-eslint
+env:
+    browser: true
+    node: true
+plugins:
+    - filenames
+    - react
+rules:
+    semi:
+        - error
+        - never
+    comma-dangle: off
+    filenames/match-exported: error
+    function-paren-newline: off
+    import/extensions: off
+    import/no-unresolved: off
+    id-length:
+        - error
+        - min: 2
+          properties: always
+    id-match:
+        - error
+        - '(^[_A-Za-z]+$)|(^[A-Z]+(_[A-Z]+)*$)|(^(\$)$)'
+        - onlyDeclarations: true
+          properties: true
+    indent:
+        - error
+        - 4
+    jsx-a11y/label-has-for:
+        - error
+        - required: id
+    max-len:
+        - error
+        - code: 100
+          ignoreStrings: true
+          ignoreRegExpLiterals: true
+    no-multiple-empty-lines:
+        - error
+        - max: 1
+          maxBOF: 0
+          maxEOF: 0
+    no-plusplus:
+        - error
+        - allowForLoopAfterthoughts: true
+    no-restricted-globals: off
+    no-restricted-syntax:
+        - error
+        - selector: MethodDefinition[kind='set']
+          message: Property setters are not allowed
+        - selector: MethodDefinition[kind='get']
+          message: Property getters are not allowed
+    no-underscore-dangle:
+        - off
+    padding-line-between-statements:
+        - error
+        - blankLine: always
+          prev: block-like
+          next: "*"
+        - blankLine: never
+          prev: expression
+          next: "*"
+    prefer-template: off
+    react/jsx-indent-props:
+        - error
+        - 4
+    react/jsx-indent:
+        - error
+        - 4
+    react/sort-comp:
+        - error
+        - order:
+              - static-methods
+              - lifecycle
+              - everything-else
+              - render
+          groups:
+              lifecycle:
+                  - displayName
+                  - propTypes
+                  - contextTypes
+                  - childContextTypes
+                  - mixins
+                  - statics
+                  - defaultProps
+                  - defaultState
+                  - constructor
+                  - getDefaultProps
+                  - state
+                  - getInitialState
+                  - getChildContext
+                  - getDerivedStateFromProps
+                  - componentWillMount
+                  - UNSAFE_componentWillMount
+                  - componentDidMount
+                  - componentWillReceiveProps
+                  - UNSAFE_componentWillReceiveProps
+                  - shouldComponentUpdate
+                  - componentWillUpdate
+                  - UNSAFE_componentWillUpdate
+                  - getSnapshotBeforeUpdate
+                  - componentDidUpdate
+                  - componentDidCatch
+                  - componentWillUnmount
