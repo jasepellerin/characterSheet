@@ -271,6 +271,43 @@ getValidAttributeScoreFromInput modelValue value =
     clamp 1 10 newValue
 
 
+type alias Statistic =
+    { title : String
+    , content : String
+    , tooltip : String
+    }
+
+
+derivedStatistics : CharacterData -> Bool -> List Statistic
+derivedStatistics data encumbered =
+    [ Statistic "Hit Points"
+        (String.fromInt (getHitpoints data.level data.endurance) ++ " HP")
+        ("How tanky you are (" ++ String.fromInt modifiers.hpBase ++ " + (Level * 5) + (Endurance * 20)")
+    , Statistic "Armor Class"
+        (String.fromInt (getTotalArmorClass data) ++ " AC")
+        ("How hard you are to hit (" ++ String.fromInt modifiers.acBase ++ " + Armor Bonus of " ++ String.fromInt (getArmorBonus data))
+    , Statistic "Move Cost"
+        (String.fromInt (getMoveCost data) ++ " AP")
+        ("AP cost to move on tile (" ++ String.fromInt modifiers.moveCostBase ++ " +  Agility modifier - Armor penalties)")
+    , Statistic "Speed"
+        (String.fromInt (getMaxMoves data) ++ " Tiles")
+        ("How far you can move per turn (" ++ String.fromInt modifiers.maxMovesBase ++ " +  Agility modifier - Armor penalties)")
+    , Statistic "AP Modifier"
+        (getApModifierText data encumbered ++ " AP")
+        ("Modifier to AP roll (" ++ String.fromInt modifiers.apBase ++ " +  Agility score - Armor penalties)")
+    ]
+
+
+card : { a | content : String, title : String } -> Html HistoryMsg
+card { content } =
+    div [ class "card" ]
+        [ div [ class "card-content" ]
+            [ span [ class "card-title" ] [ text "hi" ]
+            , text content
+            ]
+        ]
+
+
 
 -- VIEW
 
@@ -301,28 +338,7 @@ view historyModel =
                     (attributeView UpdateModel model)
                     attributes
                 )
-            , section [ class "derivedStatistics" ]
-                [ div [ class "standout", title ("How tanky you are (" ++ String.fromInt modifiers.hpBase ++ " + (Level * 5) + (Endurance * 20)") ]
-                    [ h2 [] [ text "Hit Points" ]
-                    , h3 [] [ text (String.fromInt (getHitpoints data.level data.endurance) ++ " HP") ]
-                    ]
-                , div [ encumberedClasses, title ("How hard you are to hit (" ++ String.fromInt modifiers.acBase ++ " + Armor Bonus of " ++ String.fromInt (getArmorBonus data)) ]
-                    [ h2 [] [ text "Armor Class" ]
-                    , h3 [] [ text (String.fromInt (getTotalArmorClass data) ++ " AC") ]
-                    ]
-                , div [ encumberedClasses, title ("AP cost to move on tile (" ++ String.fromInt modifiers.moveCostBase ++ " +  Agility modifier - Armor penalties)") ]
-                    [ h2 [] [ text "Move Cost" ]
-                    , h3 [] [ text (String.fromInt (getMoveCost data) ++ " AP") ]
-                    ]
-                , div [ encumberedClasses, title ("How far you can move per turn (" ++ String.fromInt modifiers.maxMovesBase ++ " +  Agility modifier - Armor penalties)") ]
-                    [ h2 [] [ text "Speed" ]
-                    , h3 [] [ text (String.fromInt (getMaxMoves data) ++ " Tiles") ]
-                    ]
-                , div [ encumberedClasses, title ("Modifier to AP roll (" ++ String.fromInt modifiers.apBase ++ " +  Agility score - Armor penalties)") ]
-                    [ h2 [] [ text "AP Modifier" ]
-                    , h3 [] [ text (getApModifierText data encumbered ++ " AP") ]
-                    ]
-                ]
+            , section [ class "derivedStatistics" ] (List.map card (derivedStatistics data encumbered))
             , section [ class "additionalInfo" ]
                 [ div [ encumberedClasses, title (String.join "\n\n" (List.map getReadableArmorData (getArmorListOrderedByArmorClass armors))) ]
                     [ h2 [] [ text "Armor Type" ]
