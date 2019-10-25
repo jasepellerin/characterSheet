@@ -1,4 +1,4 @@
-module Main exposing (Model, Msg(..), init, main, update, view)
+module Main exposing (main)
 
 import Browser
 import Browser.Dom as Dom
@@ -10,6 +10,10 @@ import Html.Events exposing (on, onClick, onDoubleClick, onInput, stopPropagatio
 import Json.Decode as Decode exposing (at, decodeString, field, string)
 import Json.Encode as Encode
 import Task
+
+
+
+-- MAIN
 
 
 main : Program () HistoryModel HistoryMsg

@@ -1,18 +1,4 @@
-"use strict";
+import { Elm } from "./elm/Main";
+import "./styles/main.scss";
 
-require("./styles/main.scss");
-
-const { Elm } = require("./elm/Main");
-
-var app = Elm.Main.init({});
-
-console.log(Elm, app);
-
-app.ports.toJs.subscribe(data => {
-    console.log(data);
-});
-
-var testFn = inp => {
-    let a = inp + 1;
-    return a;
-};
+const app = Elm.Main.init({ flags: 1 });
