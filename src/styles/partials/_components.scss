@@ -1,6 +1,4 @@
 main {
-    background-color: rgba($baseColor, 0.2);
-    color: $baseColor;
     padding: 1vh 1vw;
     min-height: 100vh;
     display: grid;
@@ -29,12 +27,11 @@ section {
     justify-items: center;
     align-items: center;
     border-radius: 1em;
-    background-color: rgba($baseColor, 0.2);
     padding: 2em 1em;
 
     h2 {
         margin-bottom: 0.25em;
-        border-bottom: 2px rgba($baseColor, 0.5) solid;
+        border-bottom: 2px $primary-color solid;
     }
 }
 
@@ -73,7 +70,6 @@ section {
 .additionalInfo select,
 .additionalInfo option {
     margin: 0;
-    background: rgba($baseColor, 0.2);
     color: unset;
     text-align-last: center;
     text-align: center;

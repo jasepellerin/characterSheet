@@ -1,0 +1,4 @@
+$primary-color: map-get(
+    $map: $teal,
+    $key: 'lighten-2'
+);
