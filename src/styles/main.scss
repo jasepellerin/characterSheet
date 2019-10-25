@@ -1,6 +1,4 @@
-:root {
-    --main-color: 100, 140, 150;
-}
+$baseColor: rgb(100, 140, 300);
 
 * {
     box-sizing: border-box;
@@ -30,8 +28,8 @@ body {
 }
 
 main {
-    background-color: rgba(var(--main-color), 0.2);
-    color: rgb(var(--main-color));
+    background-color: rgba($baseColor, 0.2);
+    color: $baseColor;
     padding: 1vh 1vw;
     min-height: 100vh;
     display: grid;
@@ -60,13 +58,13 @@ section {
     justify-items: center;
     align-items: center;
     border-radius: 10px;
-    background-color: rgba(var(--main-color), 0.2);
+    background-color: rgba($baseColor, 0.2);
     padding: 20px 10px;
 }
 
 .standout h2 {
     margin-bottom: 0.25em;
-    border-bottom: 2px rgba(var(--main-color), 0.5) solid;
+    border-bottom: 2px rgba($baseColor, 0.5) solid;
 }
 
 .attributes {
@@ -114,7 +112,7 @@ section {
 .additionalInfo select,
 .additionalInfo option {
     margin: 0;
-    background: rgba(var(--main-color), 0.2);
+    background: rgba($baseColor, 0.2);
     color: unset;
     text-align-last: center;
     text-align: center;
@@ -136,8 +134,6 @@ section {
     display: grid;
     grid-template-columns: 1fr;
     grid-template-rows: 1fr 1fr auto;
-    grid-column-gap: 30px;
-    grid-column-gap: 30px;
     grid-column-gap: 30px;
     justify-items: center;
 }
