@@ -10,8 +10,8 @@ main {
     display: grid;
     grid-template-columns: 15vw auto 15vw;
     grid-template-rows: auto 1fr;
-    grid-column-gap: 10px;
-    grid-row-gap: 30px;
+    grid-column-gap: 1vw;
+    grid-row-gap: 2vh;
 }
 
 header {
@@ -32,9 +32,9 @@ section {
     grid-template-rows: 1fr auto;
     justify-items: center;
     align-items: center;
-    border-radius: 10px;
+    border-radius: 1em;
     background-color: rgba($baseColor, 0.2);
-    padding: 20px 10px;
+    padding: 2em 1em;
 
     h2 {
         margin-bottom: 0.25em;
@@ -57,7 +57,7 @@ section {
     }
 
     input {
-        width: 60px;
+        width: 3em;
         height: 1.5em;
     }
 
@@ -91,7 +91,7 @@ section {
 
     .standout {
         width: 100%;
-        max-width: 300px;
+        max-width: 15em;
     }
 }
 
@@ -99,7 +99,7 @@ section {
     display: grid;
     grid-template-columns: 1fr;
     grid-template-rows: 1fr 1fr auto;
-    grid-column-gap: 30px;
+    grid-column-gap: 2vh;
     justify-items: center;
 
     select {
