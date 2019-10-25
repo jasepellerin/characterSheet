@@ -1,4 +1,6 @@
-extends: airbnb
+extends:
+    - airbnb
+    - prettier
 parser: babel-eslint
 env:
     browser: true
@@ -6,6 +8,7 @@ env:
 plugins:
     - filenames
     - react
+    - prettier
 rules:
     semi:
         - error
@@ -56,10 +59,10 @@ rules:
         - error
         - blankLine: always
           prev: block-like
-          next: "*"
+          next: '*'
         - blankLine: never
           prev: expression
-          next: "*"
+          next: '*'
     prefer-template: off
     react/jsx-indent-props:
         - error
