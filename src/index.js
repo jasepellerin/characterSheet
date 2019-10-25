@@ -1,4 +1,6 @@
 import { Elm } from './elm/Main'
 import './styles/main.scss'
 
-Elm.Main.init({ flags: 1 })
+Elm.Main.init({
+    flags: 1
+})
