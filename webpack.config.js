@@ -8,12 +8,8 @@ const HTMLWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
-const MODE =
-    process.env.npm_lifecycle_event === 'prod'
-        ? 'production'
-        : 'development'
-const withDebug =
-    !process.env.npm_config_nodebug && MODE === 'development'
+const MODE = process.env.npm_lifecycle_event === 'prod' ? 'production' : 'development'
+const withDebug = !process.env.npm_config_nodebug && MODE === 'development'
 
 // eslint-disable-next-line no-console
 console.log(
@@ -27,8 +23,7 @@ const common = {
         path: path.join(__dirname, 'dist'),
         publicPath: '/',
         // FIXME webpack -p automatically adds hash when building for production
-        filename:
-            MODE === 'production' ? '[name]-[hash].js' : 'index.js'
+        filename: MODE === 'production' ? '[name]-[hash].js' : 'index.js'
     },
     plugins: [
         new HTMLWebpackPlugin({
@@ -56,7 +51,12 @@ const common = {
                 exclude: [/elm-stuff/, /node_modules/],
                 loaders: [
                     'style-loader',
-                    'css-loader?url=false',
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            sourceMap: true
+                        }
+                    },
                     'sass-loader'
                 ]
             },
@@ -120,7 +120,8 @@ if (MODE === 'development') {
             stats: 'errors-only',
             contentBase: path.join(__dirname, 'src/assets'),
             historyApiFallback: true
-        }
+        },
+        devtool: 'cheap-eval-source-map'
     })
 }
 
@@ -177,19 +178,12 @@ if (MODE === 'production') {
                 {
                     test: /\.css$/,
                     exclude: [/elm-stuff/, /node_modules/],
-                    loaders: [
-                        MiniCssExtractPlugin.loader,
-                        'css-loader?url=false'
-                    ]
+                    loaders: [MiniCssExtractPlugin.loader, 'css-loader?url=false']
                 },
                 {
                     test: /\.scss$/,
                     exclude: [/elm-stuff/, /node_modules/],
-                    loaders: [
-                        MiniCssExtractPlugin.loader,
-                        'css-loader?url=false',
-                        'sass-loader'
-                    ]
+                    loaders: [MiniCssExtractPlugin.loader, 'css-loader?url=false', 'sass-loader']
                 }
             ]
         }
