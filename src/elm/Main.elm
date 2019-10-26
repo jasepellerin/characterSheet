@@ -309,6 +309,11 @@ card attributes_ { content, title, tooltip } =
         ]
 
 
+getTotalAttributes : CharacterData -> Int
+getTotalAttributes characterData =
+    List.foldl (\attribute -> \total -> total + attribute.attribute.accessor characterData) 0 attributes
+
+
 
 -- VIEW
 
@@ -334,9 +339,10 @@ view historyModel =
         [ main_ []
             [ header [] [ h1 [] [ text data.characterName ], h1 [] [ text ("Level " ++ String.fromInt data.level) ] ]
             , section [ class "attributes" ]
-                (List.map
-                    (attributeView UpdateModel model)
-                    attributes
+                (div [ class "text-center" ] [ text ("Skill total: " ++ String.fromInt (getTotalAttributes data)) ]
+                    :: List.map
+                        (attributeView UpdateModel model)
+                        attributes
                 )
             , section [ class "derivedStatistics" ] (List.map (card [ encumberedClasses ]) (derivedStatistics data encumbered))
             , section [ class "additionalInfo" ]
@@ -463,31 +469,13 @@ getMoveCost { agility, armorType, endurance } =
                     modifiers.moveCostBase - (agility - modifiers.attributeToMod) - armor.penalty
             in
             if endurance < armor.enduranceRequirement then
-                Basics.max 0 (unencumberedMoveCost - 2 * modifiers.encumberancePenalty)
+                Basics.max 4 (unencumberedMoveCost - (2 * modifiers.encumberancePenalty))
 
             else
-                Basics.max 0 unencumberedMoveCost
+                Basics.max 4 unencumberedMoveCost
 
         Nothing ->
-            0
-
-
-getMaxMoves : CharacterData -> Int
-getMaxMoves { agility, armorType, endurance } =
-    case maybeArmor armorType of
-        Just armor ->
-            let
-                unencumberedMaxMoves =
-                    modifiers.maxMovesBase + (agility - modifiers.attributeToMod) + armor.penalty
-            in
-            if endurance < armor.enduranceRequirement then
-                Basics.max 0 (unencumberedMaxMoves + modifiers.encumberancePenalty)
-
-            else
-                Basics.max 0 unencumberedMaxMoves
-
-        Nothing ->
-            0
+            20
 
 
 getApModifierText : CharacterData -> Bool -> String
@@ -544,7 +532,6 @@ modifiers =
     , hpLevelMod = 5
     , acBase = 12
     , moveCostBase = 3
-    , maxMovesBase = 5
     , encumberancePenalty = -2
     }
 
@@ -561,7 +548,7 @@ armors =
         [ ( "none", Armor 0 0 0 )
         , ( "light", Armor 1 2 -1 )
         , ( "medium", Armor 3 5 -2 )
-        , ( "heavy", Armor 5 7 -3 )
+        , ( "heavy", Armor 5 7 -4 )
         ]
 
 

@@ -19,6 +19,10 @@ section {
     align-items: start;
 }
 
+.text-center {
+    text-align: center;
+}
+
 .attributes {
     grid-row: 2 / -1;
     display: flex;
@@ -27,8 +31,8 @@ section {
 }
 
 .attribute {
+    @extend .text-center;
     cursor: pointer;
-    text-align: center;
 
     &:not(:last-child) {
         margin-bottom: 0.5em;
