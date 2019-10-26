@@ -4,8 +4,8 @@ main {
     display: grid;
     grid-template-columns: 20vw auto 20vw;
     grid-template-rows: auto 1fr 1fr;
-    grid-column-gap: 1vw;
-    grid-row-gap: 2vh;
+    grid-column-gap: 2em;
+    grid-row-gap: 2em;
 }
 
 header {
@@ -16,8 +16,7 @@ header {
 }
 
 section {
-    justify-items: center;
-    align-items: center;
+    align-items: start;
 }
 
 .attributes {
@@ -40,6 +39,7 @@ section {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr 1fr 1fr;
+    grid-column-gap: 1em;
     grid-row-gap: 0.5em;
 }
 
@@ -47,7 +47,7 @@ section {
     display: grid;
     grid-template-columns: 1fr;
     grid-template-rows: 1fr 1fr auto;
-    grid-column-gap: 2vh;
+    grid-column-gap: 1em;
     justify-items: center;
 }
 
