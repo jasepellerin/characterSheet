@@ -6,7 +6,7 @@ import Browser.Events exposing (onKeyDown, onKeyUp)
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (on, onClick, onDoubleClick, onInput, stopPropagationOn)
+import Html.Events exposing (on, onClick, onDoubleClick, onFocus, onInput, stopPropagationOn)
 import Json.Decode as Decode exposing (at, decodeString, field, string)
 import Json.Encode as Encode
 import Task
@@ -292,10 +292,6 @@ derivedStatistics data encumbered =
       , content = text (String.fromInt (getMoveCost data) ++ " AP")
       , tooltip = "AP cost to move on tile (" ++ String.fromInt modifiers.moveCostBase ++ " +  Agility modifier - Armor penalties)"
       }
-    , { title = text "Speed"
-      , content = text (String.fromInt (getMaxMoves data) ++ " Tiles")
-      , tooltip = "How far you can move per turn (" ++ String.fromInt modifiers.maxMovesBase ++ " +  Agility modifier - Armor penalties)"
-      }
     , { title = text "AP Modifier"
       , content = text (getApModifierText data encumbered ++ " AP")
       , tooltip = "Modifier to AP roll (" ++ String.fromInt modifiers.apBase ++ " +  Agility score - Armor penalties)"
@@ -305,7 +301,7 @@ derivedStatistics data encumbered =
 
 card : List (Html.Attribute msg) -> { a | content : Html msg, title : Html msg, tooltip : String } -> Html msg
 card attributes_ { content, title, tooltip } =
-    div (class "card" :: (Html.Attributes.title tooltip :: attributes_))
+    div (class "card" :: Html.Attributes.title tooltip :: attributes_)
         [ div [ class "card-content" ]
             [ span [ class "card-title" ] [ title ]
             , content
@@ -331,8 +327,7 @@ view historyModel =
 
         encumberedClasses =
             classList
-                [ ( "standout", True )
-                , ( "encumbered", encumbered )
+                [ ( "encumbered", encumbered )
                 ]
     in
     { body =
@@ -343,7 +338,7 @@ view historyModel =
                     (attributeView UpdateModel model)
                     attributes
                 )
-            , section [ class "derivedStatistics" ] (List.map (card []) (derivedStatistics data encumbered))
+            , section [ class "derivedStatistics" ] (List.map (card [ encumberedClasses ]) (derivedStatistics data encumbered))
             , section [ class "additionalInfo" ]
                 [ card [ encumberedClasses ]
                     { title = text "Armor Type"
@@ -393,26 +388,27 @@ attributes =
 attributeView : (Bool -> Msg -> HistoryMsg) -> Model -> { attributeName : String, attribute : CharacterAttribute CharacterData Int, specificTitle : String } -> Html HistoryMsg
 attributeView historyMsg model { attributeName, attribute, specificTitle } =
     let
-        createAttributeView : Attribute HistoryMsg -> Html HistoryMsg -> Html HistoryMsg
-        createAttributeView clickHandler attributeElement =
+        createAttributeView : List (Attribute HistoryMsg) -> Html HistoryMsg -> Html HistoryMsg
+        createAttributeView attributeList attributeElement =
             card
-                [ class "attribute"
-                , clickHandler
-                ]
+                (class "attribute"
+                    :: tabindex 0
+                    :: attributeList
+                )
                 { title = text (capitalizeFirstLetter attributeName)
                 , tooltip = specificTitle ++ " Modifier is " ++ String.fromInt (attribute.accessor model.characterData - modifiers.attributeToMod)
                 , content = attributeElement
                 }
     in
     if attributeName == model.editingAttribute then
-        createAttributeView (stopPropagationOn "click" (Decode.succeed ( HistoryNoOp, True )))
+        createAttributeView []
             (input
                 [ on "blur" (Decode.succeed (historyMsg False StopEditing)), on "change" (changeDecoder (historyMsg True << UpdateAttribute << attribute.updateMsg)), type_ "number", maxlength 2, id attributeName ]
                 []
             )
 
     else
-        createAttributeView (onDoubleClick (historyMsg False (EditAttribute attributeName))) (h3 [] [ text (String.fromInt (attribute.accessor model.characterData)) ])
+        createAttributeView [ onFocus (historyMsg False (EditAttribute attributeName)), onDoubleClick (historyMsg False (EditAttribute attributeName)) ] (h3 [] [ text (String.fromInt (attribute.accessor model.characterData)) ])
 
 
 getReadableArmorData : ( String, Armor ) -> String
@@ -421,9 +417,7 @@ getReadableArmorData ( armorName, armor ) =
         [ capitalizeFirstLetter armorName
         , "|"
         , String.fromInt armor.armorClass
-        , "AC |"
-        , String.fromInt armor.penalty
-        , "speed | Moves cost"
+        , "AC | Moves cost"
         , String.fromInt armor.penalty
         , "more AP | Requires"
         , String.fromInt armor.enduranceRequirement

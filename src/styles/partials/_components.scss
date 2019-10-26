@@ -49,8 +49,14 @@ section {
     grid-template-rows: 1fr 1fr auto;
     grid-column-gap: 1em;
     justify-items: center;
+
+    select {
+        background: none;
+        border: 0;
+        outline-color: color('deep-orange', 'lighten-2');
+    }
 }
 
 .encumbered {
-    filter: hue-rotate(180deg);
+    background-color: color('deep-orange', 'lighten-3');
 }
