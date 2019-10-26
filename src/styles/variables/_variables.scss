@@ -1,4 +1,3 @@
-$primary-color: map-get(
-    $map: $teal,
-    $key: 'lighten-2'
-);
+$input-border-color: rgba(color('grey', 'darken-4'), 0.2);
+
+$encumbered-color: color('deep-orange', 'lighten-3');

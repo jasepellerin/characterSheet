@@ -53,10 +53,11 @@ section {
     select {
         background: none;
         border: 0;
-        outline-color: color('deep-orange', 'lighten-2');
+        outline-color: $input-border-color;
+        @extend .z-depth-1;
     }
 }
 
 .encumbered {
-    background-color: color('deep-orange', 'lighten-3');
+    background-color: $encumbered-color;
 }
