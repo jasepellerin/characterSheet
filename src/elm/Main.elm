@@ -271,39 +271,44 @@ getValidAttributeScoreFromInput modelValue value =
     clamp 1 10 newValue
 
 
-type alias Statistic =
-    { title : String
-    , content : String
+type alias Statistic msg =
+    { title : Html msg
+    , content : Html msg
     , tooltip : String
     }
 
 
-derivedStatistics : CharacterData -> Bool -> List Statistic
+derivedStatistics : CharacterData -> Bool -> List (Statistic HistoryMsg)
 derivedStatistics data encumbered =
-    [ Statistic "Hit Points"
-        (String.fromInt (getHitpoints data.level data.endurance) ++ " HP")
-        ("How tanky you are (" ++ String.fromInt modifiers.hpBase ++ " + (Level * 5) + (Endurance * 20)")
-    , Statistic "Armor Class"
-        (String.fromInt (getTotalArmorClass data) ++ " AC")
-        ("How hard you are to hit (" ++ String.fromInt modifiers.acBase ++ " + Armor Bonus of " ++ String.fromInt (getArmorBonus data))
-    , Statistic "Move Cost"
-        (String.fromInt (getMoveCost data) ++ " AP")
-        ("AP cost to move on tile (" ++ String.fromInt modifiers.moveCostBase ++ " +  Agility modifier - Armor penalties)")
-    , Statistic "Speed"
-        (String.fromInt (getMaxMoves data) ++ " Tiles")
-        ("How far you can move per turn (" ++ String.fromInt modifiers.maxMovesBase ++ " +  Agility modifier - Armor penalties)")
-    , Statistic "AP Modifier"
-        (getApModifierText data encumbered ++ " AP")
-        ("Modifier to AP roll (" ++ String.fromInt modifiers.apBase ++ " +  Agility score - Armor penalties)")
+    [ { title = text "Hit Points"
+      , content = text (String.fromInt (getHitpoints data.level data.endurance) ++ " HP")
+      , tooltip = "How tanky you are (" ++ String.fromInt modifiers.hpBase ++ " + (Level * 5) + (Endurance * 20)"
+      }
+    , { title = text "Armor Class"
+      , content = text (String.fromInt (getTotalArmorClass data) ++ " AC")
+      , tooltip = "How hard you are to hit (" ++ String.fromInt modifiers.acBase ++ " + Armor Bonus of " ++ String.fromInt (getArmorBonus data)
+      }
+    , { title = text "Move Cost"
+      , content = text (String.fromInt (getMoveCost data) ++ " AP")
+      , tooltip = "AP cost to move on tile (" ++ String.fromInt modifiers.moveCostBase ++ " +  Agility modifier - Armor penalties)"
+      }
+    , { title = text "Speed"
+      , content = text (String.fromInt (getMaxMoves data) ++ " Tiles")
+      , tooltip = "How far you can move per turn (" ++ String.fromInt modifiers.maxMovesBase ++ " +  Agility modifier - Armor penalties)"
+      }
+    , { title = text "AP Modifier"
+      , content = text (getApModifierText data encumbered ++ " AP")
+      , tooltip = "Modifier to AP roll (" ++ String.fromInt modifiers.apBase ++ " +  Agility score - Armor penalties)"
+      }
     ]
 
 
-card : { a | content : String, title : String } -> Html HistoryMsg
-card { content } =
-    div [ class "card" ]
+card : List (Html.Attribute msg) -> { a | content : Html msg, title : Html msg, tooltip : String } -> Html msg
+card attributes_ { content, title, tooltip } =
+    div (class "card" :: (Html.Attributes.title tooltip :: attributes_))
         [ div [ class "card-content" ]
-            [ span [ class "card-title" ] [ text "hi" ]
-            , text content
+            [ span [ class "card-title" ] [ title ]
+            , content
             ]
         ]
 
@@ -338,13 +343,15 @@ view historyModel =
                     (attributeView UpdateModel model)
                     attributes
                 )
-            , section [ class "derivedStatistics" ] (List.map card (derivedStatistics data encumbered))
+            , section [ class "derivedStatistics" ] (List.map (card []) (derivedStatistics data encumbered))
             , section [ class "additionalInfo" ]
-                [ div [ encumberedClasses, title (String.join "\n\n" (List.map getReadableArmorData (getArmorListOrderedByArmorClass armors))) ]
-                    [ h2 [] [ text "Armor Type" ]
-                    , select [ onInput (UpdateModel True << UpdateArmor) ]
-                        (List.map (armorToOption data.armorType) (List.map Tuple.first (getArmorListOrderedByArmorClass armors)))
-                    ]
+                [ card [ encumberedClasses ]
+                    { title = text "Armor Type"
+                    , content =
+                        select [ class "browser-default", onInput (UpdateModel True << UpdateArmor) ]
+                            (List.map (armorToOption data.armorType) (List.map Tuple.first (getArmorListOrderedByArmorClass armors)))
+                    , tooltip = String.join "\n\n" (List.map getReadableArmorData (getArmorListOrderedByArmorClass armors))
+                    }
                 ]
             ]
         ]
@@ -388,14 +395,14 @@ attributeView historyMsg model { attributeName, attribute, specificTitle } =
     let
         createAttributeView : Attribute HistoryMsg -> Html HistoryMsg -> Html HistoryMsg
         createAttributeView clickHandler attributeElement =
-            div
-                [ class "standout attribute"
+            card
+                [ class "attribute"
                 , clickHandler
-                , title (specificTitle ++ " Modifier is " ++ String.fromInt (attribute.accessor model.characterData - modifiers.attributeToMod))
                 ]
-                [ h2 [] [ text (capitalizeFirstLetter attributeName) ]
-                , attributeElement
-                ]
+                { title = text (capitalizeFirstLetter attributeName)
+                , tooltip = specificTitle ++ " Modifier is " ++ String.fromInt (attribute.accessor model.characterData - modifiers.attributeToMod)
+                , content = attributeElement
+                }
     in
     if attributeName == model.editingAttribute then
         createAttributeView (stopPropagationOn "click" (Decode.succeed ( HistoryNoOp, True )))
