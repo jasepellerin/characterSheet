@@ -9,6 +9,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (on, onClick, onDoubleClick, onFocus, onInput, stopPropagationOn)
 import Json.Decode as Decode exposing (at, decodeString, field, string)
 import Json.Encode as Encode
+import List.Extra exposing (find)
 import Task
 
 
@@ -354,10 +355,33 @@ view historyModel =
                     , tooltip = String.join "\n\n" (List.map getReadableArmorData (getArmorListOrderedByArmorClass armors))
                     }
                 ]
+            , section []
+                [ List.map combatSkills ]
             ]
         ]
     , title = "Character Sheet - " ++ model.characterData.characterName
     }
+
+
+getSkillValue : CharacterData -> String -> CharacterAttribute String Int
+getSkillValue data skill =
+    find (.attribute >> .attributeName >> (==) skill)
+        |> Maybe.withDefault { attributeName = "none", accessor = "" }
+
+
+
+-- skillView : CharacterData -> String -> Html msg
+-- skillView data skill =
+--     let
+--         attribute =
+--             find (.attribute >> .attributeName >> (==) skill)
+--                 >> Maybe.withDefault { attribute = { attributeName = "none", accessor = "" } }
+--     in
+--     card []
+--         { content = text (data << (.attribute >> .accessor >> attribute attributes))
+--         , title = text skill
+--         , tooltip = ""
+--         }
 
 
 getPreviousStrength : Model -> Int
@@ -388,6 +412,15 @@ attributes =
     , { attributeName = "intelligence", attribute = CharacterAttribute .intelligence UpdateIntelligence, specificTitle = "\u{1F9E0}" }
     , { attributeName = "agility", attribute = CharacterAttribute .agility UpdateAgility, specificTitle = "🏃" }
     , { attributeName = "luck", attribute = CharacterAttribute .luck UpdateLuck, specificTitle = "🍀" }
+    ]
+
+
+combatSkills =
+    [ { name = "energy_weapons", attribute = "perception" }
+    , { name = "melee_weapons", attribute = "strength" }
+    , { name = "explosives", attribute = "perception" }
+    , { name = "unarmed", attribute = "endurance" }
+    , { name = "guns", attribute = "agility" }
     ]
 
 
@@ -521,15 +554,13 @@ maybeArmor armorType =
 
 getHitpoints : Int -> Int -> Int
 getHitpoints level endurance =
-    modifiers.hpBase + modifiers.hpLevelMod * level + modifiers.hpEnduranceMod * endurance
+    modifiers.hpBase + (endurance * level)
 
 
 modifiers =
     { apBase = 10
     , attributeToMod = 5
-    , hpBase = 95
-    , hpEnduranceMod = 20
-    , hpLevelMod = 5
+    , hpBase = 10
     , acBase = 12
     , moveCostBase = 3
     , encumberancePenalty = -2
