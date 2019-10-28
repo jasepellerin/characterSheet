@@ -11,6 +11,8 @@ import Json.Decode as Decode exposing (at, decodeString, field, string)
 import Json.Encode as Encode
 import List.Extra exposing (find)
 import Task
+import Types.CharacterData exposing (CharacterData)
+import Types.SpecialAttribute exposing (SpecialAttribute, SpecialAttributeMsg(..), getSpecialAttribute, specialAttributeNames)
 
 
 
@@ -29,20 +31,6 @@ main =
 
 
 -- MODEL
-
-
-type alias CharacterData =
-    { characterName : String
-    , level : Int
-    , armorType : String
-    , strength : Int
-    , perception : Int
-    , endurance : Int
-    , charisma : Int
-    , intelligence : Int
-    , agility : Int
-    , luck : Int
-    }
 
 
 type alias Model =
@@ -100,22 +88,12 @@ subscriptions model =
 -- UPDATE
 
 
-type UpdateAttributeMsg
-    = UpdateStrength String
-    | UpdatePerception String
-    | UpdateEndurance String
-    | UpdateCharisma String
-    | UpdateIntelligence String
-    | UpdateAgility String
-    | UpdateLuck String
-
-
 type Msg
     = EditAttribute String
     | NoOp
     | StopEditing
     | UpdateArmor String
-    | UpdateAttribute UpdateAttributeMsg
+    | UpdateAttribute SpecialAttributeMsg String
 
 
 type HistoryMsg
@@ -224,32 +202,32 @@ update msg model =
             in
             ( { model | characterData = { characterData | armorType = newArmor } }, Cmd.none )
 
-        UpdateAttribute abilityMsg ->
-            ( { model | characterData = updateAttributeScore abilityMsg model.characterData, editingAttribute = "" }, Cmd.none )
+        UpdateAttribute abilityMsg value ->
+            ( { model | characterData = updateAttributeScore abilityMsg value model.characterData, editingAttribute = "" }, Cmd.none )
 
 
-updateAttributeScore : UpdateAttributeMsg -> CharacterData -> CharacterData
-updateAttributeScore abilityMsg characterData =
+updateAttributeScore : SpecialAttributeMsg -> String -> CharacterData -> CharacterData
+updateAttributeScore abilityMsg value characterData =
     case abilityMsg of
-        UpdateStrength value ->
+        Strength ->
             { characterData | strength = getValidAttributeScoreFromInput characterData.strength value }
 
-        UpdatePerception value ->
+        Perception ->
             { characterData | perception = getValidAttributeScoreFromInput characterData.perception value }
 
-        UpdateEndurance value ->
+        Endurance ->
             { characterData | endurance = getValidAttributeScoreFromInput characterData.endurance value }
 
-        UpdateCharisma value ->
+        Charisma ->
             { characterData | charisma = getValidAttributeScoreFromInput characterData.charisma value }
 
-        UpdateIntelligence value ->
+        Intelligence ->
             { characterData | intelligence = getValidAttributeScoreFromInput characterData.intelligence value }
 
-        UpdateAgility value ->
+        Agility ->
             { characterData | agility = getValidAttributeScoreFromInput characterData.agility value }
 
-        UpdateLuck value ->
+        Luck ->
             { characterData | luck = getValidAttributeScoreFromInput characterData.luck value }
 
 
@@ -312,7 +290,7 @@ card attributes_ { content, title, tooltip } =
 
 getTotalAttributes : CharacterData -> Int
 getTotalAttributes characterData =
-    List.foldl (\attribute -> \total -> total + attribute.attribute.accessor characterData) 0 attributes
+    List.foldl (\attribute -> \total -> total + (characterData |> (Maybe.withDefault { accessor = .strength, msg = Strength, tooltip = "" } (getSpecialAttribute attribute) |> .accessor))) 0 specialAttributeNames
 
 
 
@@ -342,8 +320,8 @@ view historyModel =
             , section [ class "attributes" ]
                 (div [ class "text-center" ] [ text ("Skill total: " ++ String.fromInt (getTotalAttributes data)) ]
                     :: List.map
-                        (attributeView UpdateModel model)
-                        attributes
+                        (specialAttributeView UpdateModel model)
+                        specialAttributeNames
                 )
             , section [ class "derivedStatistics" ] (List.map (card [ encumberedClasses ]) (derivedStatistics data encumbered))
             , section [ class "additionalInfo" ]
@@ -356,32 +334,25 @@ view historyModel =
                     }
                 ]
             , section []
-                [ List.map combatSkills ]
+                (List.map (skillView data) combatSkills)
             ]
         ]
     , title = "Character Sheet - " ++ model.characterData.characterName
     }
 
 
-getSkillValue : CharacterData -> String -> CharacterAttribute String Int
-getSkillValue data skill =
-    find (.attribute >> .attributeName >> (==) skill)
-        |> Maybe.withDefault { attributeName = "none", accessor = "" }
+skillView : CharacterData -> Skill -> Html msg
+skillView data skill =
+    let
+        specialAttribute =
+            getSpecialAttribute skill.attribute
+    in
+    case specialAttribute of
+        Just specialAttribute_ ->
+            card [] { title = text skill.name, content = text (String.fromInt (specialAttribute_.accessor data)), tooltip = "" }
 
-
-
--- skillView : CharacterData -> String -> Html msg
--- skillView data skill =
---     let
---         attribute =
---             find (.attribute >> .attributeName >> (==) skill)
---                 >> Maybe.withDefault { attribute = { attributeName = "none", accessor = "" } }
---     in
---     card []
---         { content = text (data << (.attribute >> .accessor >> attribute attributes))
---         , title = text skill
---         , tooltip = ""
---         }
+        Nothing ->
+            text "Something broke"
 
 
 getPreviousStrength : Model -> Int
@@ -398,23 +369,11 @@ updateKey value =
     Decode.map getMsg (field "key" string)
 
 
-type alias CharacterAttribute a b =
-    { accessor : a -> b
-    , updateMsg : String -> UpdateAttributeMsg
-    }
+type alias Skill =
+    { name : String, attribute : String }
 
 
-attributes =
-    [ { attributeName = "strength", attribute = CharacterAttribute .strength UpdateStrength, specificTitle = "💪" }
-    , { attributeName = "perception", attribute = CharacterAttribute .perception UpdatePerception, specificTitle = "🕵" }
-    , { attributeName = "endurance", attribute = CharacterAttribute .endurance UpdateEndurance, specificTitle = "\u{1F98D}" }
-    , { attributeName = "charisma", attribute = CharacterAttribute .charisma UpdateCharisma, specificTitle = "🗣" }
-    , { attributeName = "intelligence", attribute = CharacterAttribute .intelligence UpdateIntelligence, specificTitle = "\u{1F9E0}" }
-    , { attributeName = "agility", attribute = CharacterAttribute .agility UpdateAgility, specificTitle = "🏃" }
-    , { attributeName = "luck", attribute = CharacterAttribute .luck UpdateLuck, specificTitle = "🍀" }
-    ]
-
-
+combatSkills : List Skill
 combatSkills =
     [ { name = "energy_weapons", attribute = "perception" }
     , { name = "melee_weapons", attribute = "strength" }
@@ -424,30 +383,44 @@ combatSkills =
     ]
 
 
-attributeView : (Bool -> Msg -> HistoryMsg) -> Model -> { attributeName : String, attribute : CharacterAttribute CharacterData Int, specificTitle : String } -> Html HistoryMsg
-attributeView historyMsg model { attributeName, attribute, specificTitle } =
+specialAttributeView : (Bool -> Msg -> HistoryMsg) -> Model -> String -> Html HistoryMsg
+specialAttributeView historyMsg model specialAttributeName =
     let
-        createAttributeView : List (Attribute HistoryMsg) -> Html HistoryMsg -> Html HistoryMsg
-        createAttributeView attributeList attributeElement =
+        specialAttribute =
+            getSpecialAttribute specialAttributeName
+
+        sharedAttributeView : List (Attribute HistoryMsg) -> Html HistoryMsg -> SpecialAttribute -> Html HistoryMsg
+        sharedAttributeView attributeList attributeElement specialAttribute_ =
             card
                 (class "attribute"
                     :: tabindex 0
                     :: attributeList
                 )
-                { title = text (capitalizeFirstLetter attributeName)
-                , tooltip = specificTitle ++ " Modifier is " ++ String.fromInt (attribute.accessor model.characterData - modifiers.attributeToMod)
+                { title = text (capitalizeFirstLetter specialAttributeName)
+                , tooltip = specialAttribute_.tooltip ++ " Modifier is " ++ String.fromInt (specialAttribute_.accessor model.characterData - modifiers.attributeToMod)
                 , content = attributeElement
                 }
     in
-    if attributeName == model.editingAttribute then
-        createAttributeView []
-            (input
-                [ on "blur" (Decode.succeed (historyMsg False StopEditing)), on "change" (changeDecoder (historyMsg True << UpdateAttribute << attribute.updateMsg)), type_ "number", maxlength 2, id attributeName ]
-                []
-            )
+    case specialAttribute of
+        Nothing ->
+            card [] { content = text "My bad lul", title = text "Something broke", tooltip = "" }
 
-    else
-        createAttributeView [ onFocus (historyMsg False (EditAttribute attributeName)), onDoubleClick (historyMsg False (EditAttribute attributeName)) ] (h3 [] [ text (String.fromInt (attribute.accessor model.characterData)) ])
+        Just specialAttribute_ ->
+            if specialAttributeName == model.editingAttribute then
+                sharedAttributeView []
+                    (input
+                        [ on "blur" (Decode.succeed (historyMsg False StopEditing)), on "change" (changeDecoder (historyMsg True) (UpdateAttribute specialAttribute_.msg)), type_ "number", maxlength 2, id specialAttributeName ]
+                        []
+                    )
+                    specialAttribute_
+
+            else
+                sharedAttributeView
+                    [ onFocus (historyMsg False (EditAttribute specialAttributeName))
+                    , onDoubleClick (historyMsg False (EditAttribute specialAttributeName))
+                    ]
+                    (h3 [] [ text (String.fromInt (specialAttribute_.accessor model.characterData)) ])
+                    specialAttribute_
 
 
 getReadableArmorData : ( String, Armor ) -> String
@@ -588,11 +561,6 @@ armorToOption selectedArmor armorName =
     option [ value armorName, selected (armorName == selectedArmor) ] [ text (capitalizeFirstLetter armorName) ]
 
 
-changeDecoder : (String -> HistoryMsg) -> Decode.Decoder HistoryMsg
-changeDecoder msg =
-    Decode.map (valueToMsg msg) (at [ "target", "value" ] string)
-
-
-valueToMsg : (String -> HistoryMsg) -> String -> HistoryMsg
-valueToMsg msg value =
-    msg value
+changeDecoder : (Msg -> HistoryMsg) -> (String -> Msg) -> Decode.Decoder HistoryMsg
+changeDecoder historyMsg msg =
+    Decode.map (\value -> historyMsg (msg value)) (at [ "target", "value" ] string)
