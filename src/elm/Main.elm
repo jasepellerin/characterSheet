@@ -316,27 +316,27 @@ view historyModel =
                 ]
     in
     { body =
-        [ main_ []
-            [ header [] [ h1 [] [ text data.characterName ], h1 [] [ text ("Level " ++ String.fromInt data.level) ] ]
-            , section [ class "attributes" ]
-                (div [ class "text-center" ] [ text ("Skill total: " ++ String.fromInt (getTotalAttributes data)) ]
-                    :: List.map
-                        (specialAttributeView UpdateModel model)
-                        specialAttributeNames
+        [ header [] [ h1 [] [ text data.characterName ], h1 [] [ text ("Level " ++ String.fromInt data.level) ] ]
+        , section [ class "attributes" ]
+            (List.append
+                (List.map
+                    (specialAttributeView UpdateModel model)
+                    specialAttributeNames
                 )
-            , section [ class "derivedStatistics" ] (List.map (card [ encumberedClasses ]) (derivedStatistics data encumbered))
-            , section [ class "additionalInfo" ]
-                [ card [ encumberedClasses ]
-                    { title = text "Armor Type"
-                    , content =
-                        select [ class "browser-default", onInput (UpdateModel True << UpdateArmor) ]
-                            (List.map (armorToOption data.armorType) (List.map Tuple.first (getArmorListOrderedByArmorClass armors)))
-                    , tooltip = String.join "\n\n" (List.map getReadableArmorData (getArmorListOrderedByArmorClass armors))
-                    }
-                ]
-            , section []
-                (List.map (skillView data) combatSkills)
+                [ div [ class "text-center" ] [ text ("Skill total: " ++ String.fromInt (getTotalAttributes data)) ] ]
+            )
+        , section [ class "derivedStatistics" ] (List.map (card [ encumberedClasses ]) (derivedStatistics data encumbered))
+        , section [ class "additionalInfo" ]
+            [ card [ encumberedClasses ]
+                { title = text "Armor Type"
+                , content =
+                    select [ class "browser-default", onInput (UpdateModel True << UpdateArmor) ]
+                        (List.map (armorToOption data.armorType) (List.map Tuple.first (getArmorListOrderedByArmorClass armors)))
+                , tooltip = String.join "\n\n" (List.map getReadableArmorData (getArmorListOrderedByArmorClass armors))
+                }
             ]
+        , section []
+            (List.map (skillView data) combatSkills)
         ]
     , title = "Character Sheet - " ++ model.characterData.characterName
     }
