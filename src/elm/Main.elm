@@ -293,7 +293,7 @@ card attributes_ { content, title, tooltip } =
     div (class "card" :: Html.Attributes.title tooltip :: attributes_)
         [ div [ class "card-content" ]
             [ span [ class "card-title" ] [ title ]
-            , content
+            , div [ class "card-body" ] [ content ]
             ]
         ]
 
@@ -509,7 +509,7 @@ getApModifierText data encumbered =
             getApModifier data encumbered
     in
     if apModifier > 0 then
-        "+ " ++ String.fromInt apModifier
+        "+" ++ String.fromInt apModifier
 
     else
         String.fromInt apModifier

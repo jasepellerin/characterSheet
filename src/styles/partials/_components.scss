@@ -54,7 +54,6 @@ section {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 15%;
 }
 
 .card {
@@ -75,6 +74,12 @@ section {
 
     .card-content {
         padding: 24px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .card-body {
+        padding: 0 15%;
     }
 }
 
@@ -120,6 +125,7 @@ section {
         border: 0;
         border-bottom: 2px solid $input-border-color;
         outline-color: $input-border-color;
+        font-size: 1.5em;
     }
 }
 
