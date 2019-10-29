@@ -9,13 +9,13 @@ const HTMLWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
-const MODE = process.env.npm_lifecycle_event === 'prod' ? 'production' : 'development'
+const MODE = process.env.npm_lifecycle_event === 'build' ? 'production' : 'development'
 const withDebug = !process.env.npm_config_nodebug && MODE === 'development'
 
 // eslint-disable-next-line no-console
 console.log(
     '\x1b[36m%s\x1b[0m',
-    `** charater-sheet: mode "${MODE}", wsl: ${isWsl}, withDebug: ${withDebug}\n`
+    `** character-sheet: mode "${MODE}", wsl: ${isWsl}, withDebug: ${withDebug}\n`
 )
 const wslOptions = isWsl
     ? {
