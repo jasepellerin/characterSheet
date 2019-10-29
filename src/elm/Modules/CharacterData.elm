@@ -1,4 +1,4 @@
-module Types.CharacterData exposing (CharacterData)
+module Modules.CharacterData exposing (CharacterData)
 
 
 type alias CharacterData =

@@ -10,9 +10,9 @@ import Html.Events exposing (on, onClick, onDoubleClick, onFocus, onInput, stopP
 import Json.Decode as Decode exposing (at, decodeString, field, string)
 import Json.Encode as Encode
 import List.Extra exposing (find)
+import Modules.CharacterData exposing (CharacterData)
+import Modules.SpecialAttribute exposing (SpecialAttribute, SpecialAttributeMsg(..), getSpecialAttribute, specialAttributeNames)
 import Task
-import Types.CharacterData exposing (CharacterData)
-import Types.SpecialAttribute exposing (SpecialAttribute, SpecialAttributeMsg(..), getSpecialAttribute, specialAttributeNames)
 
 
 
@@ -367,20 +367,6 @@ updateKey value =
             UpdateKey key value
     in
     Decode.map getMsg (field "key" string)
-
-
-type alias Skill =
-    { name : String, attribute : String }
-
-
-combatSkills : List Skill
-combatSkills =
-    [ { name = "energy_weapons", attribute = "perception" }
-    , { name = "melee_weapons", attribute = "strength" }
-    , { name = "explosives", attribute = "perception" }
-    , { name = "unarmed", attribute = "endurance" }
-    , { name = "guns", attribute = "agility" }
-    ]
 
 
 specialAttributeView : (Bool -> Msg -> HistoryMsg) -> Model -> String -> Html HistoryMsg

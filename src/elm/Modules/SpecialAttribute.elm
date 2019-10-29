@@ -1,7 +1,7 @@
-module Types.SpecialAttribute exposing (SpecialAttribute, SpecialAttributeMsg(..), getSpecialAttribute, specialAttributeNames)
+module Modules.SpecialAttribute exposing (SpecialAttribute, SpecialAttributeMsg(..), getSpecialAttribute, specialAttributeNames)
 
 import Dict exposing (Dict)
-import Types.CharacterData exposing (CharacterData)
+import Modules.CharacterData exposing (CharacterData)
 
 
 type SpecialAttributeMsg
