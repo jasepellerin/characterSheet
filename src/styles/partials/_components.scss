@@ -65,6 +65,12 @@ section {
     }
 }
 
+.skills {
+    @extend .grid-standard;
+    grid-column: 2/-1;
+    grid-template-columns: 1fr 2fr;
+}
+
 .encumbered {
     background-color: $encumbered-color;
 }

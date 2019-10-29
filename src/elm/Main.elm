@@ -335,8 +335,10 @@ view historyModel =
                 , tooltip = String.join "\n\n" (List.map getReadableArmorData (getArmorListOrderedByArmorClass armors))
                 }
             ]
-        , section []
-            (List.map (skillView data) combatSkills)
+        , section [ class "skills" ]
+            [ div [ class ".grid-standard" ] (List.map (skillView data) combatSkills)
+            , div [] []
+            ]
         ]
     , title = "Character Sheet - " ++ model.characterData.characterName
     }
