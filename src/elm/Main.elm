@@ -306,7 +306,7 @@ getTotalAttributes characterData =
 sheetSection : { className : String, title : String } -> List (Html msg) -> Html msg
 sheetSection { className, title } content =
     section [ class "sheetSection", class className ]
-        (h2 [ class "sectionTitle" ] [ text title ]
+        (h2 [] [ text title ]
             :: content
         )
 

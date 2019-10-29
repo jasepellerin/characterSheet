@@ -48,6 +48,7 @@ section {
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.12),
         0 1px 5px 0 rgba(0, 0, 0, 0.2);
     transition: box-shadow 0.25s;
+    border-radius: 0 0 2px 2px;
 }
 
 .flex {
@@ -60,7 +61,6 @@ section {
     @extend .shadowed;
     min-height: 140px;
     background-color: rgba(lighten($background-color, 40%), 0.8);
-    border-radius: 0 0 2px 2px;
 
     .card-title {
         display: block;
@@ -85,11 +85,14 @@ section {
 
 .sheetSection {
     grid-template-rows: 70px;
-}
-
-.sectionTitle {
-    grid-column: 1/-1;
-    text-align: center;
+    > h2 {
+        @extend .shadowed;
+        grid-column: 1/-1;
+        text-align: center;
+        background-color: lighten($background-color, 40%);
+        height: 100%;
+        line-height: 125%;
+    }
 }
 
 .grid-standard {
@@ -103,13 +106,17 @@ section {
 }
 
 .attributes {
-    grid-row: 2 / -1;
     @extend .grid-standard;
+    grid-row: 2 / -1;
 }
 
 .attribute {
     @extend .text-center;
     cursor: pointer;
+
+    input {
+        border-color: $background-color;
+    }
 }
 
 .derivedStatistics {
@@ -123,8 +130,8 @@ section {
     select {
         background: none;
         border: 0;
-        border-bottom: 2px solid $input-border-color;
-        outline-color: $input-border-color;
+        border-bottom: 2px solid $background-color;
+        outline-color: $background-color;
         font-size: 1.5em;
     }
 }
