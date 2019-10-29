@@ -11,6 +11,7 @@ import Json.Decode as Decode exposing (at, decodeString, field, string)
 import Json.Encode as Encode
 import List.Extra exposing (find)
 import Modules.CharacterData exposing (CharacterData)
+import Modules.Skills exposing (Skill, combatSkills)
 import Modules.SpecialAttribute exposing (SpecialAttribute, SpecialAttributeMsg(..), getSpecialAttribute, specialAttributeNames)
 import Task
 

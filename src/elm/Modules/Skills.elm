@@ -1,4 +1,4 @@
-module Skills exposing (Skill, combatSkills)
+module Modules.Skills exposing (Skill, combatSkills)
 
 
 type alias Skill =
