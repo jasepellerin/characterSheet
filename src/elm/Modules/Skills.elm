@@ -1,4 +1,4 @@
-module Modules.Skills exposing (CharacterSkills, Skill, combatSkills)
+module Modules.Skills exposing (CharacterSkills, Skill, combatSkills, nonCombatSkills)
 
 import Dict exposing (Dict)
 
@@ -14,8 +14,20 @@ type alias CharacterSkills =
 combatSkills : List Skill
 combatSkills =
     [ { name = "energy_weapons", attribute = "intelligence" }
-    , { name = "melee_weapons", attribute = "strength" }
     , { name = "explosives", attribute = "perception" }
-    , { name = "unarmed", attribute = "endurance" }
     , { name = "guns", attribute = "perception" }
+    , { name = "melee_weapons", attribute = "strength" }
+    , { name = "unarmed", attribute = "endurance" }
+    ]
+
+
+nonCombatSkills : List Skill
+nonCombatSkills =
+    [ { name = "barter", attribute = "charisma" }
+    , { name = "lockpick", attribute = "perception" }
+    , { name = "medicine", attribute = "intelligence" }
+    , { name = "science", attribute = "intelligence" }
+    , { name = "sneak", attribute = "agility" }
+    , { name = "speech", attribute = "charisma" }
+    , { name = "survival", attribute = "endurance" }
     ]

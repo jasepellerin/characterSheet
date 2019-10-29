@@ -11,7 +11,7 @@ import Json.Decode as Decode exposing (at, decodeString, field, string)
 import Json.Encode as Encode
 import List.Extra exposing (find)
 import Modules.CharacterData exposing (CharacterData)
-import Modules.Skills exposing (Skill, combatSkills)
+import Modules.Skills exposing (Skill, combatSkills, nonCombatSkills)
 import Modules.SpecialAttribute exposing (SpecialAttribute, SpecialAttributeMsg(..), getSpecialAttribute, specialAttributeNames)
 import Task
 
@@ -355,7 +355,7 @@ view historyModel =
             ]
         , sheetSection { title = "Skills", className = "skills" }
             [ div [ class "grid-standard" ] (List.map (skillView data) combatSkills)
-            , div [] []
+            , div [ class "grid-standard two-column" ] (List.map (skillView data) nonCombatSkills)
             ]
         ]
     , title = "Character Sheet - " ++ model.characterData.characterName

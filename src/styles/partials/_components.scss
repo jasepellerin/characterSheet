@@ -101,6 +101,10 @@ section {
     grid-row-gap: 0.5em;
 }
 
+.two-column {
+    grid-template-columns: 1fr 1fr;
+}
+
 .text-center {
     text-align: center;
 }
