@@ -1,6 +1,7 @@
 const path = require('path')
 const webpack = require('webpack')
 const merge = require('webpack-merge')
+const isWsl = require('is-wsl')
 
 const ClosurePlugin = require('closure-webpack-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
@@ -14,8 +15,18 @@ const withDebug = !process.env.npm_config_nodebug && MODE === 'development'
 // eslint-disable-next-line no-console
 console.log(
     '\x1b[36m%s\x1b[0m',
-    `** elm-webpack-starter: mode "${MODE}", withDebug: ${withDebug}\n`
+    `** charater-sheet: mode "${MODE}", wsl: ${isWsl}, withDebug: ${withDebug}\n`
 )
+const wslOptions = isWsl
+    ? {
+        lazy: false,
+        watchOptions: {
+            aggregateTimeout: 200,
+            poll: true
+        }
+    }
+    : {}
+
 const common = {
     mode: MODE,
     entry: './src/index.js',
@@ -119,7 +130,8 @@ if (MODE === 'development') {
             inline: true,
             stats: 'errors-only',
             contentBase: path.join(__dirname, 'src/assets'),
-            historyApiFallback: true
+            historyApiFallback: true,
+            ...wslOptions
         },
         devtool: 'cheap-eval-source-map'
     })
@@ -128,20 +140,7 @@ if (MODE === 'development') {
 if (MODE === 'production') {
     module.exports = merge(common, {
         optimization: {
-            minimizer: [
-                new ClosurePlugin(
-                    { mode: 'STANDARD' },
-                    {
-                        // compiler flags here
-                        //
-                        // for debugging help, try these:
-                        //
-                        // formatting: 'PRETTY_PRINT',
-                        // debug: true
-                        // renaming: false
-                    }
-                )
-            ]
+            minimizer: [new ClosurePlugin({ mode: 'STANDARD' }, {})]
         },
         plugins: [
             // Delete everything from output-path (/dist) and report to user
