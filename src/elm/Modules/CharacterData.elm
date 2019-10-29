@@ -1,4 +1,5 @@
 module Modules.CharacterData exposing (CharacterData)
+import Modules.Skills exposing (CharacterSkills)
 
 
 type alias CharacterData =
@@ -12,4 +13,5 @@ type alias CharacterData =
     , intelligence : Int
     , agility : Int
     , luck : Int
+    , skills : CharacterSkills
     }

@@ -6,7 +6,7 @@ import Browser.Events exposing (onKeyDown, onKeyUp)
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (on, onClick, onDoubleClick, onFocus, onInput, stopPropagationOn)
+import Html.Events exposing (on, onCheck, onClick, onDoubleClick, onFocus, onInput, stopPropagationOn)
 import Json.Decode as Decode exposing (at, decodeString, field, string)
 import Json.Encode as Encode
 import List.Extra exposing (find)
@@ -61,6 +61,7 @@ modelInit =
         , intelligence = 1
         , agility = 1
         , luck = 1
+        , skills = Dict.empty
         }
     , editingAttribute = ""
     }
@@ -92,6 +93,7 @@ subscriptions model =
 type Msg
     = EditAttribute String
     | NoOp
+    | SetSkillTrained String Bool
     | StopEditing
     | UpdateArmor String
     | UpdateAttribute SpecialAttributeMsg String
@@ -193,6 +195,13 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
+        SetSkillTrained skillName value ->
+            let
+                characterData =
+                    model.characterData
+            in
+            ( { model | characterData = { characterData | skills = Dict.insert skillName value model.characterData.skills } }, Cmd.none )
+
         StopEditing ->
             ( { model | editingAttribute = "" }, Cmd.none )
 
@@ -261,19 +270,19 @@ type alias Statistic msg =
 derivedStatistics : CharacterData -> Bool -> List (Statistic HistoryMsg)
 derivedStatistics data encumbered =
     [ { title = text "Hit Points"
-      , content = text (String.fromInt (getHitpoints data.level data.endurance) ++ " HP")
+      , content = h3 [] [ text (String.fromInt (getHitpoints data.level data.endurance) ++ " HP") ]
       , tooltip = "How tanky you are (" ++ String.fromInt modifiers.hpBase ++ " + (Level * 5) + (Endurance * 20)"
       }
     , { title = text "Armor Class"
-      , content = text (String.fromInt (getTotalArmorClass data) ++ " AC")
+      , content = h3 [] [ text (String.fromInt (getTotalArmorClass data) ++ " AC") ]
       , tooltip = "How hard you are to hit (" ++ String.fromInt modifiers.acBase ++ " + Armor Bonus of " ++ String.fromInt (getArmorBonus data)
       }
     , { title = text "Move Cost"
-      , content = text (String.fromInt (getMoveCost data) ++ " AP")
+      , content = h3 [] [ text (String.fromInt (getMoveCost data) ++ " AP") ]
       , tooltip = "AP cost to move on tile (" ++ String.fromInt modifiers.moveCostBase ++ " +  Agility modifier - Armor penalties)"
       }
     , { title = text "AP Modifier"
-      , content = text (getApModifierText data encumbered ++ " AP")
+      , content = h3 [] [ text (getApModifierText data encumbered ++ " AP") ]
       , tooltip = "Modifier to AP roll (" ++ String.fromInt modifiers.apBase ++ " +  Agility score - Armor penalties)"
       }
     ]
@@ -345,7 +354,7 @@ view historyModel =
                 }
             ]
         , sheetSection { title = "Skills", className = "skills" }
-            [ div [ class ".grid-standard" ] (List.map (skillView data) combatSkills)
+            [ div [ class "grid-standard" ] (List.map (skillView data) combatSkills)
             , div [] []
             ]
         ]
@@ -353,23 +362,34 @@ view historyModel =
     }
 
 
-skillView : CharacterData -> Skill -> Html msg
+skillView : CharacterData -> Skill -> Html HistoryMsg
 skillView data skill =
     let
         specialAttribute =
             getSpecialAttribute skill.attribute
+
+        isTrained =
+            Maybe.withDefault False (Dict.get skill.name data.skills)
+
+        additionalScore =
+            case isTrained of
+                True ->
+                    15
+
+                False ->
+                    0
     in
     case specialAttribute of
         Just specialAttribute_ ->
-            card [] { title = text skill.name, content = text (String.fromInt (specialAttribute_.accessor data)), tooltip = "" }
+            card [] { title = text (getPrettyName skill.name), content = div [ class "flex" ] [ h2 [] [ text (String.fromInt (additionalScore + (2 * specialAttribute_.accessor data) + ((data.luck + 1) // 2))) ], div [ class "checkbox-wrapper" ] [ input [ type_ "checkbox", checked isTrained, onCheck (UpdateModel True << SetSkillTrained skill.name), id skill.name ] [], label [ class "checkbox-label", for skill.name ] [ text "Trained" ] ] ], tooltip = "" }
 
         Nothing ->
             text "Something broke"
 
 
-getPreviousStrength : Model -> Int
-getPreviousStrength model =
-    model.characterData.strength
+getPrettyName : String -> String
+getPrettyName name =
+    String.split "_" name |> List.map capitalizeFirstLetter |> String.join " "
 
 
 updateKey : Bool -> Decode.Decoder HistoryMsg

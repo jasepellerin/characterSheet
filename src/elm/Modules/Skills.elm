@@ -1,8 +1,13 @@
-module Modules.Skills exposing (Skill, combatSkills)
+module Modules.Skills exposing (CharacterSkills, Skill, combatSkills)
+import Dict exposing (Dict)
 
 
 type alias Skill =
     { name : String, attribute : String }
+
+
+type alias CharacterSkills =
+    Dict String Bool
 
 
 combatSkills : List Skill

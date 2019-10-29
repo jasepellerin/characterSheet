@@ -1,5 +1,7 @@
-$input-border-color: rgba(color('grey', 'darken-4'), 0.2);
+$input-border-color: rgba(darken(grey, 40%), 0.2);
 
-$encumbered-color: color('brown', 'lighten-3');
+$encumbered-color: lighten(brown, 30%);
 
-$background-color: 'grey';
+$background-color: grey;
+
+$border-radius: 2px;
