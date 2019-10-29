@@ -366,7 +366,7 @@ skillView : CharacterData -> Skill -> Html HistoryMsg
 skillView data skill =
     let
         specialAttribute =
-            getSpecialAttribute skill.attribute
+            Maybe.map (\attribute -> attribute.accessor data) (getSpecialAttribute skill.attribute)
 
         isTrained =
             Maybe.withDefault False (Dict.get skill.name data.skills)
@@ -378,13 +378,24 @@ skillView data skill =
 
                 False ->
                     0
-    in
-    case specialAttribute of
-        Just specialAttribute_ ->
-            card [] { title = text (getPrettyName skill.name), content = div [ class "flex" ] [ h2 [] [ text (String.fromInt (additionalScore + (2 * specialAttribute_.accessor data) + ((data.luck + 1) // 2))) ], div [ class "checkbox-wrapper" ] [ input [ type_ "checkbox", checked isTrained, onCheck (UpdateModel True << SetSkillTrained skill.name), id skill.name ] [], label [ class "checkbox-label", for skill.name ] [ text "Trained" ] ] ], tooltip = "" }
 
-        Nothing ->
-            text "Something broke"
+        totalScore =
+            Maybe.withDefault -1
+                (Maybe.map (\specialAttribute_ -> additionalScore + (2 * specialAttribute_) + ((data.luck + 1) // 2)) specialAttribute)
+    in
+    card []
+        { title = text (getPrettyName skill.name)
+        , content =
+            div [ class "flex" ]
+                [ h2 [] [ text (String.fromInt totalScore) ]
+                , b [] [ text ("+" ++ String.fromInt (totalScore // 10)) ]
+                , div [ class "checkbox-wrapper" ]
+                    [ input [ type_ "checkbox", checked isTrained, onCheck (UpdateModel True << SetSkillTrained skill.name), id skill.name ] []
+                    , label [ class "checkbox-label", for skill.name ] [ text "Trained" ]
+                    ]
+                ]
+        , tooltip = ""
+        }
 
 
 getPrettyName : String -> String
