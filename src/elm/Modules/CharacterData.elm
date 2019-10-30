@@ -1,9 +1,10 @@
 module Modules.CharacterData exposing (CharacterData)
+
 import Modules.Skills exposing (CharacterSkills)
 
 
 type alias CharacterData =
-    { characterName : String
+    { name : String
     , level : Int
     , armorType : String
     , strength : Int

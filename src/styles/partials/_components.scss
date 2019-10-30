@@ -38,6 +38,18 @@ header {
     display: flex;
     justify-content: space-around;
     align-items: center;
+
+    .name-container {
+        cursor: pointer;
+        width: 50vw;
+        text-align: center;
+
+        h1 {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+    }
 }
 
 section {

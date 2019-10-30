@@ -36,7 +36,7 @@ main =
 
 type alias Model =
     { characterData : CharacterData
-    , editingAttribute : String
+    , editing : String
     }
 
 
@@ -51,7 +51,7 @@ type alias HistoryModel =
 
 modelInit =
     { characterData =
-        { characterName = "New Character"
+        { name = "New Character"
         , level = 1
         , armorType = "none"
         , strength = 1
@@ -63,7 +63,7 @@ modelInit =
         , luck = 1
         , skills = Dict.empty
         }
-    , editingAttribute = ""
+    , editing = ""
     }
 
 
@@ -91,12 +91,13 @@ subscriptions model =
 
 
 type Msg
-    = EditAttribute String
+    = EditSection String
     | NoOp
     | SetSkillTrained String Bool
     | StopEditing
     | UpdateArmor String
     | UpdateAttribute SpecialAttributeMsg String
+    | UpdateCharacterName String
 
 
 type HistoryMsg
@@ -188,32 +189,31 @@ updateWithHistory msg historyModel =
 
 update : Msg -> Model -> ( Model, Cmd HistoryMsg )
 update msg model =
+    let
+        characterData =
+            model.characterData
+    in
     case msg of
-        EditAttribute attributeName ->
-            ( { model | editingAttribute = attributeName }, Task.attempt (always HistoryNoOp) (Dom.focus attributeName) )
+        EditSection sectionName ->
+            ( { model | editing = sectionName }, Task.attempt (always HistoryNoOp) (Dom.focus sectionName) )
 
         NoOp ->
             ( model, Cmd.none )
 
         SetSkillTrained skillName value ->
-            let
-                characterData =
-                    model.characterData
-            in
             ( { model | characterData = { characterData | skills = Dict.insert skillName value model.characterData.skills } }, Cmd.none )
 
         StopEditing ->
-            ( { model | editingAttribute = "" }, Cmd.none )
+            ( { model | editing = "" }, Cmd.none )
 
         UpdateArmor newArmor ->
-            let
-                characterData =
-                    model.characterData
-            in
             ( { model | characterData = { characterData | armorType = newArmor } }, Cmd.none )
 
         UpdateAttribute abilityMsg value ->
-            ( { model | characterData = updateAttributeScore abilityMsg value model.characterData, editingAttribute = "" }, Cmd.none )
+            ( { model | characterData = updateAttributeScore abilityMsg value model.characterData, editing = "" }, Cmd.none )
+
+        UpdateCharacterName value ->
+            ( { model | characterData = { characterData | name = value }, editing = "" }, Cmd.none )
 
 
 updateAttributeScore : SpecialAttributeMsg -> String -> CharacterData -> CharacterData
@@ -333,7 +333,7 @@ view historyModel =
                 ]
     in
     { body =
-        [ header [] [ h1 [] [ text data.characterName ], h1 [] [ text ("Level " ++ String.fromInt data.level) ] ]
+        [ header [] [ div [ class "name-container", onClick (UpdateModel False (EditSection "name")) ] [ nameView model ], h1 [] [ text ("Level " ++ String.fromInt data.level) ] ]
         , sheetSection { title = "Special", className = "attributes" }
             (List.append
                 (List.map
@@ -358,8 +358,18 @@ view historyModel =
             , div [ class "grid-standard two-column" ] (List.map (skillView data) nonCombatSkills)
             ]
         ]
-    , title = "Character Sheet - " ++ model.characterData.characterName
+    , title = "Character Sheet - " ++ model.characterData.name
     }
+
+
+nameView : Model -> Html HistoryMsg
+nameView model =
+    case model.editing == "name" of
+        True ->
+            editableInput [ id "name", type_ "text" ] UpdateModel UpdateCharacterName
+
+        False ->
+            h1 [] [ text model.characterData.name ]
 
 
 skillView : CharacterData -> Skill -> Html HistoryMsg
@@ -406,8 +416,16 @@ getPrettyName name =
 updateKey : Bool -> Decode.Decoder HistoryMsg
 updateKey value =
     let
+        values =
+            [ "control", "meta", "shift", "z" ]
+
         getMsg key =
-            UpdateKey key value
+            case List.member key values of
+                True ->
+                    UpdateKey key value
+
+                False ->
+                    HistoryNoOp
     in
     Decode.map getMsg (field "key" string)
 
@@ -435,21 +453,28 @@ specialAttributeView historyMsg model specialAttributeName =
             card [] { content = text "My bad lul", title = text "Something broke", tooltip = "" }
 
         Just specialAttribute_ ->
-            if specialAttributeName == model.editingAttribute then
+            if specialAttributeName == model.editing then
                 sharedAttributeView []
-                    (input
-                        [ on "blur" (Decode.succeed (historyMsg False StopEditing)), on "change" (changeDecoder (historyMsg True) (UpdateAttribute specialAttribute_.msg)), type_ "number", maxlength 2, id specialAttributeName ]
-                        []
-                    )
+                    (editableInput [ id specialAttributeName, type_ "number", maxlength 2 ] historyMsg (UpdateAttribute specialAttribute_.msg))
                     specialAttribute_
 
             else
                 sharedAttributeView
-                    [ onFocus (historyMsg False (EditAttribute specialAttributeName))
-                    , onDoubleClick (historyMsg False (EditAttribute specialAttributeName))
-                    ]
+                    [ onFocus (historyMsg False (EditSection specialAttributeName)) ]
                     (h3 [] [ text (String.fromInt (specialAttribute_.accessor model.characterData)) ])
                     specialAttribute_
+
+
+editableInput : List (Attribute HistoryMsg) -> (Bool -> Msg -> HistoryMsg) -> (String -> Msg) -> Html HistoryMsg
+editableInput attributes msg onChange =
+    input
+        (List.append
+            [ on "blur" (Decode.succeed (msg False StopEditing))
+            , on "change" (changeDecoder (msg True) onChange)
+            ]
+            attributes
+        )
+        []
 
 
 getReadableArmorData : ( String, Armor ) -> String
