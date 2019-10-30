@@ -354,8 +354,8 @@ view historyModel =
                 }
             ]
         , sheetSection { title = "Skills", className = "skills" }
-            [ div [ class "grid-standard" ] (List.map (skillView data) combatSkills)
-            , div [ class "grid-standard two-column" ] (List.map (skillView data) nonCombatSkills)
+            [ div [ class "grid-standard" ] (List.map (skillView True data) combatSkills)
+            , div [ class "grid-standard two-column" ] (List.map (skillView False data) nonCombatSkills)
             ]
         ]
     , title = "Character Sheet - " ++ model.characterData.name
@@ -372,8 +372,8 @@ nameView model =
             h1 [] [ text model.characterData.name ]
 
 
-skillView : CharacterData -> Skill -> Html HistoryMsg
-skillView data skill =
+skillView : Bool -> CharacterData -> Skill -> Html HistoryMsg
+skillView isCombat data skill =
     let
         specialAttribute =
             Maybe.map (\attribute -> attribute.accessor data) (getSpecialAttribute skill.attribute)
@@ -392,13 +392,33 @@ skillView data skill =
         totalScore =
             Maybe.withDefault -1
                 (Maybe.map (\specialAttribute_ -> additionalScore + (2 * specialAttribute_) + ((data.luck + 1) // 2)) specialAttribute)
+
+        modifier =
+            let
+                trainedModifier =
+                    case isCombat && not isTrained of
+                        True ->
+                            modifiers.untrainedCombat
+
+                        False ->
+                            0
+            in
+            (totalScore // 10) + trainedModifier
+
+        modifierPrefix =
+            case modifier >= 0 of
+                True ->
+                    "+"
+
+                False ->
+                    ""
     in
     card []
         { title = text (getPrettyName skill.name)
         , content =
             div [ class "flex" ]
-                [ h2 [] [ text (String.fromInt totalScore) ]
-                , b [] [ text ("+" ++ String.fromInt (totalScore // 10)) ]
+                [ h2 [] [ text (modifierPrefix ++ String.fromInt totalScore) ]
+                , b [] [ text (modifierPrefix ++ String.fromInt modifier) ]
                 , div [ class "checkbox-wrapper" ]
                     [ input [ type_ "checkbox", checked isTrained, onCheck (UpdateModel True << SetSkillTrained skill.name), id skill.name ] []
                     , label [ class "checkbox-label", for skill.name ] [ text "Trained" ]
@@ -468,11 +488,12 @@ specialAttributeView historyMsg model specialAttributeName =
 editableInput : List (Attribute HistoryMsg) -> (Bool -> Msg -> HistoryMsg) -> (String -> Msg) -> Html HistoryMsg
 editableInput attributes msg onChange =
     input
-        (List.append
+        (List.concat[
             [ on "blur" (Decode.succeed (msg False StopEditing))
             , on "change" (changeDecoder (msg True) onChange)
-            ]
+            ],
             attributes
+            ]
         )
         []
 
@@ -591,6 +612,7 @@ modifiers =
     , acBase = 12
     , moveCostBase = 3
     , encumberancePenalty = -2
+    , untrainedCombat = -4
     }
 
 
