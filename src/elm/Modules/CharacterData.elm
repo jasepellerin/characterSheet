@@ -15,4 +15,5 @@ type alias CharacterData =
     , agility : Int
     , luck : Int
     , skills : CharacterSkills
+    , userId : String
     }

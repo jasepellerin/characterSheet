@@ -8,7 +8,7 @@ import Html exposing (..)
 import Html.Attributes exposing (checked, class, classList, for, id, maxlength, placeholder, selected, tabindex, title, type_, value)
 import Html.Events exposing (on, onCheck, onClick, onDoubleClick, onFocus, onInput, stopPropagationOn)
 import Json.Decode as Decode exposing (at, bool, decodeString, field, int, string)
-import Json.Decode.Pipeline exposing (custom, hardcoded, optional, required)
+import Json.Decode.Pipeline exposing (custom, hardcoded, optional, requiredAt)
 import Json.Encode as Encode
 import List.Extra exposing (find)
 import Modules.CharacterData exposing (CharacterData)
@@ -44,6 +44,7 @@ main =
 type alias Model =
     { characterData : CharacterData
     , editing : String
+    , currentUserId : String
     }
 
 
@@ -69,7 +70,9 @@ modelInit =
         , agility = 1
         , luck = 1
         , skills = Dict.empty
+        , userId = ""
         }
+    , currentUserId = ""
     , editing = ""
     }
 
@@ -86,13 +89,21 @@ historyModelInit =
 init : Decode.Value -> ( HistoryModel, Cmd HistoryMsg )
 init flags =
     let
-        ( decodedImportData, error ) =
-            case Decode.decodeValue importedDataDecoder flags of
+        currentUserId =
+            case Decode.decodeValue userIdDecoder flags of
+                Ok currentUserId_ ->
+                    currentUserId_
+
+                Err _ ->
+                    ""
+
+        ( decodedCharacterData, result ) =
+            case Decode.decodeValue characterDataDecoder flags of
                 Ok decodedData ->
-                    ( decodedData, "" )
+                    ( decodedData, characterDataEncoder decodedData )
 
                 Err err ->
-                    ( { userId = "", characterData = modelInit.characterData }, Decode.errorToString err )
+                    ( modelInit.characterData, Encode.string (Decode.errorToString err) )
 
         model =
             historyModelInit.model
@@ -100,7 +111,7 @@ init flags =
         characterData =
             historyModelInit.model.characterData
     in
-    ( { historyModelInit | model = { model | characterData = decodedImportData.characterData } }, log (Encode.string error) )
+    ( { historyModelInit | model = { model | characterData = decodedCharacterData, currentUserId = currentUserId } }, log result )
 
 
 subscriptions : HistoryModel -> Sub HistoryMsg
@@ -693,32 +704,31 @@ changeDecoder historyMsg msg =
 
 
 type alias ImportedData =
-    { userId : String
+    { currentUserId : String
     , characterData : CharacterData
     }
 
 
-importedDataDecoder : Decode.Decoder ImportedData
-importedDataDecoder =
-    Decode.map2 ImportedData
-        (field "userId" string)
-        (field "characterData" characterDataDecoder)
+userIdDecoder : Decode.Decoder String
+userIdDecoder =
+    field "currentUserId" string
 
 
 characterDataDecoder : Decode.Decoder CharacterData
 characterDataDecoder =
     Decode.succeed CharacterData
-        |> required "name" string
-        |> required "level" int
-        |> required "armorType" string
-        |> required "strength" int
-        |> required "perception" int
-        |> required "endurance" int
-        |> required "charisma" int
-        |> required "intelligence" int
-        |> required "agility" int
-        |> required "luck" int
-        |> custom (field "skills" characterSkillsDecoder)
+        |> requiredAt [ "characterData", "name" ] string
+        |> requiredAt [ "characterData", "level" ] int
+        |> requiredAt [ "characterData", "armorType" ] string
+        |> requiredAt [ "characterData", "strength" ] int
+        |> requiredAt [ "characterData", "perception" ] int
+        |> requiredAt [ "characterData", "endurance" ] int
+        |> requiredAt [ "characterData", "charisma" ] int
+        |> requiredAt [ "characterData", "intelligence" ] int
+        |> requiredAt [ "characterData", "agility" ] int
+        |> requiredAt [ "characterData", "luck" ] int
+        |> custom (at [ "characterData", "skills" ] characterSkillsDecoder)
+        |> requiredAt [ "characterData", "userId" ] string
 
 
 characterSkillsDecoder : Decode.Decoder (Dict String Bool)
@@ -733,6 +743,7 @@ characterDataEncoder characterData =
             [ ( "name", Encode.string characterData.name )
             , ( "level", Encode.int characterData.level )
             , ( "armorType", Encode.string characterData.armorType )
+            , ( "userId", Encode.string characterData.userId )
             , ( "skills"
               , Encode.object
                     (Dict.values (Dict.map (\skillName -> \isTrained -> ( skillName, Encode.bool isTrained )) characterData.skills))

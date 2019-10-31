@@ -23,7 +23,7 @@ const initializeElm = flags => {
 
 const handleSuccessfulLogin = () => {
     const elmFlags = {
-        userId: user ? user.id : ''
+        currentUserId: user ? user.id : ''
     }
     if (id) {
         // api.getCharacterById(id).then(response => {
