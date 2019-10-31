@@ -15,9 +15,12 @@ const initializeElm = flags => {
     elmApp.ports.log.subscribe(data => {
         console.log(data)
     })
-    elmApp.ports.setCharacterData.subscribe(data => {
+    elmApp.ports.setLocalCharacterData.subscribe(data => {
         console.log('setting', data)
         localStorage.setItem(storageKey, JSON.stringify(data))
+    })
+    elmApp.ports.setDbCharacterData.subscribe(data => {
+        console.log('setting in db', data)
     })
 }
 

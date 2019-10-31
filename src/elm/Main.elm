@@ -5,7 +5,7 @@ import Browser.Dom as Dom
 import Browser.Events exposing (onKeyDown, onKeyUp)
 import Dict exposing (Dict)
 import Html exposing (..)
-import Html.Attributes exposing (checked, class, classList, for, id, maxlength, placeholder, selected, tabindex, title, type_, value)
+import Html.Attributes exposing (checked, class, classList, disabled, for, id, maxlength, placeholder, selected, tabindex, title, type_, value)
 import Html.Events exposing (on, onCheck, onClick, onDoubleClick, onFocus, onInput, stopPropagationOn)
 import Json.Decode as Decode exposing (at, bool, decodeString, field, int, string)
 import Json.Decode.Pipeline exposing (custom, hardcoded, optional, requiredAt)
@@ -17,7 +17,10 @@ import Modules.SpecialAttribute exposing (SpecialAttribute, SpecialAttributeMsg(
 import Task
 
 
-port setCharacterData : Encode.Value -> Cmd msg
+port setLocalCharacterData : Encode.Value -> Cmd msg
+
+
+port setDbCharacterData : Encode.Value -> Cmd msg
 
 
 port log : Encode.Value -> Cmd msg
@@ -54,6 +57,7 @@ type alias HistoryModel =
     , history : List Model
     , controlDown : Bool
     , shiftDown : Bool
+    , saving : Bool
     }
 
 
@@ -83,6 +87,7 @@ historyModelInit =
     , undoHistory = []
     , controlDown = False
     , shiftDown = False
+    , saving = False
     }
 
 
@@ -136,6 +141,7 @@ type Msg
 type HistoryMsg
     = HistoryNoOp
     | Redo
+    | SaveDataToDb
     | Undo
     | UpdateKey String Bool
     | UpdateModel Bool Msg
@@ -160,6 +166,9 @@ updateWithHistory msg historyModel =
 
                 [] ->
                     ( historyModel, Cmd.none )
+
+        SaveDataToDb ->
+            ( { historyModel | saving = True }, setDbCharacterData (characterDataEncoder historyModel.model.characterData) )
 
         Undo ->
             case historyModel.history of
@@ -227,7 +236,7 @@ update msg model =
             model.characterData
 
         updateLocalStorage =
-            \newModel -> setCharacterData (characterDataEncoder newModel)
+            \newModel -> setLocalCharacterData (characterDataEncoder newModel)
     in
     case msg of
         EditSection sectionName ->
@@ -394,9 +403,29 @@ view historyModel =
 
         canEdit =
             model.currentUserId == data.userId
+
+        hasUnsavedChanges =
+            True
+
+        saveMessage =
+            case canEdit of
+                True ->
+                    SaveDataToDb
+
+                False ->
+                    HistoryNoOp
     in
     { body =
-        [ header [] [ div [ class "name-container", classList [ ( "pointer", canEdit ) ], onClick (getCanEditMessage canEdit (UpdateModel False (EditSection "name"))) ] [ nameView model ], h1 [] [ text ("Level " ++ String.fromInt data.level) ] ]
+        [ header []
+            [ div
+                [ class "name-container"
+                , classList [ ( "pointer", canEdit ) ]
+                , onClick (getCanEditMessage canEdit (UpdateModel False (EditSection "name")))
+                ]
+                [ nameView model ]
+            , h1 [] [ text ("Level " ++ String.fromInt data.level) ]
+            , button [ disabled historyModel.saving, classList [ ( "hidden", not hasUnsavedChanges ) ], onClick saveMessage ] [ text "Save" ]
+            ]
         , sheetSection { title = "Special", className = "attributes" }
             (List.append
                 (List.map

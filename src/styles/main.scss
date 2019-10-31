@@ -1,5 +1,4 @@
 @import 'base/resets';
 @import 'variables/variables';
-@import 'partials/input';
-@import 'partials/typography';
-@import 'partials/components';
+@import 'mixins/base';
+@import 'partials/base';
