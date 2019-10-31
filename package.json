@@ -51,7 +51,6 @@
     },
     "dependencies": {
         "faunadb": "^2.9.3",
-        "netlify-identity-widget": "^1.5.5",
-        "query-string": "^6.8.3"
+        "netlify-identity-widget": "^1.5.5"
     }
 }

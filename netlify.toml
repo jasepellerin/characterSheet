@@ -4,6 +4,6 @@
   publish = "dist"
 
 [[redirects]]
-  from = "/:id"
+  from = "/*"
   to = "/"
-  query = {id = ":id"}
+  status = 200

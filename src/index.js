@@ -1,13 +1,13 @@
 /* eslint-disable no-console */
 import netlifyIdentity from 'netlify-identity-widget'
-import queryString from 'query-string'
 import { Elm } from './elm/Main'
 import getCharacterById from './utils/api'
+import getId from './utils/getId'
 import './styles/main.scss'
 
 netlifyIdentity.init()
 const user = netlifyIdentity.currentUser()
-const { id } = queryString.parse(location.search)
+const { id } = getId(location.pathname)
 
 console.log('user', user)
 console.log('id', id)
