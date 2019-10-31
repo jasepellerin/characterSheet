@@ -1,4 +1,4 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 import Browser
 import Browser.Dom as Dom
@@ -14,6 +14,9 @@ import Modules.CharacterData exposing (CharacterData)
 import Modules.Skills exposing (Skill, combatSkills, nonCombatSkills)
 import Modules.SpecialAttribute exposing (SpecialAttribute, SpecialAttributeMsg(..), getSpecialAttribute, specialAttributeNames)
 import Task
+
+
+port log : Encode.Value -> Cmd msg
 
 
 
@@ -78,7 +81,7 @@ historyModelInit =
 
 init : () -> ( HistoryModel, Cmd HistoryMsg )
 init =
-    always ( historyModelInit, Cmd.none )
+    always ( historyModelInit, log (characterDataEncoder modelInit.characterData) )
 
 
 subscriptions : HistoryModel -> Sub HistoryMsg
@@ -649,3 +652,27 @@ armorToOption selectedArmor armorName =
 changeDecoder : (Msg -> HistoryMsg) -> (String -> Msg) -> Decode.Decoder HistoryMsg
 changeDecoder historyMsg msg =
     Decode.map (\value -> historyMsg (msg value)) (at [ "target", "value" ] string)
+
+
+characterDataEncoder : CharacterData -> Encode.Value
+characterDataEncoder characterData =
+    Encode.object
+        (List.append
+            [ ( "name", Encode.string characterData.name )
+            , ( "level", Encode.int characterData.level )
+            , ( "armorType", Encode.string characterData.armorType )
+            , ( "skills"
+              , Encode.object
+                    (Dict.values (Dict.map (\skillName -> \isTrained -> ( skillName, Encode.bool isTrained )) characterData.skills))
+              )
+            ]
+            (List.map
+                (\attributeName -> ( attributeName, Encode.int (getAttributeValueFromNameWithDefault 0 characterData attributeName) ))
+                specialAttributeNames
+            )
+        )
+
+
+getAttributeValueFromNameWithDefault : Int -> CharacterData -> String -> Int
+getAttributeValueFromNameWithDefault default characterData attributeName =
+    Maybe.withDefault default (Maybe.map (\attribute -> .accessor attribute characterData) (getSpecialAttribute attributeName))

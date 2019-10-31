@@ -16,13 +16,19 @@ const handleSuccessfulLogin = () => {
     }
     if (id) {
         api.getCharacterById(id).then(response => {
-            Elm.Main.init({
+            const elmApp = Elm.Main.init({
                 ...elmData,
                 characterData: response
             })
+            elmApp.ports.log.subscribe(data => {
+                console.log(data)
+            })
         })
     } else {
-        Elm.Main.init(elmData)
+        const elmApp = Elm.Main.init(elmData)
+        elmApp.ports.log.subscribe(data => {
+            console.log(data)
+        })
     }
 }
 
