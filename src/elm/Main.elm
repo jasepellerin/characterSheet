@@ -391,13 +391,16 @@ view historyModel =
 
                 False ->
                     ""
+
+        canEdit =
+            model.currentUserId == data.userId
     in
     { body =
-        [ header [] [ div [ class "name-container", onClick (UpdateModel False (EditSection "name")) ] [ nameView model ], h1 [] [ text ("Level " ++ String.fromInt data.level) ] ]
+        [ header [] [ div [ class "name-container", classList [ ( "pointer", canEdit ) ], onClick (getCanEditMessage canEdit (UpdateModel False (EditSection "name"))) ] [ nameView model ], h1 [] [ text ("Level " ++ String.fromInt data.level) ] ]
         , sheetSection { title = "Special", className = "attributes" }
             (List.append
                 (List.map
-                    (specialAttributeView UpdateModel model)
+                    (specialAttributeView canEdit UpdateModel model)
                     specialAttributeNames
                 )
                 [ div [ class "text-center", class skillTotalClasses ] [ text ("Skill total: " ++ String.fromInt (getTotalAttributes data)) ] ]
@@ -408,18 +411,39 @@ view historyModel =
             [ card [ encumberedClasses ]
                 { title = text "Armor Type"
                 , content =
-                    select [ class "browser-default", onInput (UpdateModel True << UpdateArmor) ]
-                        (List.map (armorToOption data.armorType) (List.map Tuple.first (getArmorListOrderedByArmorClass armors)))
+                    armorSelectView canEdit (UpdateModel True << UpdateArmor) data.armorType
                 , tooltip = String.join "\n\n" (List.map getReadableArmorData (getArmorListOrderedByArmorClass armors))
                 }
             ]
         , sheetSection { title = "Skills", className = "skills" }
-            [ div [ class "grid-standard" ] (List.map (skillView True data) combatSkills)
-            , div [ class "grid-standard two-column" ] (List.map (skillView False data) nonCombatSkills)
+            [ div [ class "grid-standard" ] (List.map (skillView canEdit True data) combatSkills)
+            , div [ class "grid-standard two-column" ] (List.map (skillView canEdit False data) nonCombatSkills)
             ]
         ]
     , title = "Character Sheet - " ++ model.characterData.name
     }
+
+
+getCanEditMessage : Bool -> HistoryMsg -> HistoryMsg
+getCanEditMessage canEdit editMessage =
+    case canEdit of
+        True ->
+            editMessage
+
+        False ->
+            HistoryNoOp
+
+
+armorSelectView : Bool -> (String -> HistoryMsg) -> String -> Html HistoryMsg
+armorSelectView canEdit historyMsg armorType =
+    case canEdit of
+        True ->
+            select
+                [ onInput historyMsg ]
+                (List.map (armorToOption armorType) (List.map Tuple.first (getArmorListOrderedByArmorClass armors)))
+
+        False ->
+            h3 [] [ text (capitalizeFirstLetter armorType) ]
 
 
 nameView : Model -> Html HistoryMsg
@@ -432,8 +456,8 @@ nameView model =
             h1 [] [ text model.characterData.name ]
 
 
-skillView : Bool -> CharacterData -> Skill -> Html HistoryMsg
-skillView isCombat data skill =
+skillView : Bool -> Bool -> CharacterData -> Skill -> Html HistoryMsg
+skillView canEdit isCombat data skill =
     let
         specialAttribute =
             Maybe.map (\attribute -> attribute.accessor data) (getSpecialAttribute skill.attribute)
@@ -480,7 +504,7 @@ skillView isCombat data skill =
                 [ h2 [] [ text (modifierPrefix ++ String.fromInt totalScore) ]
                 , b [] [ text (modifierPrefix ++ String.fromInt modifier) ]
                 , div [ class "checkbox-wrapper" ]
-                    [ input [ type_ "checkbox", checked isTrained, onCheck (UpdateModel True << SetSkillTrained skill.name), id skill.name ] []
+                    [ input [ type_ "checkbox", checked isTrained, onCheck (\checked -> getCanEditMessage canEdit ((UpdateModel True << SetSkillTrained skill.name) checked)), id skill.name ] []
                     , label [ class "checkbox-label", for skill.name ] [ text "Trained" ]
                     ]
                 ]
@@ -510,8 +534,8 @@ updateKey value =
     Decode.map getMsg (field "key" string)
 
 
-specialAttributeView : (Bool -> Msg -> HistoryMsg) -> Model -> String -> Html HistoryMsg
-specialAttributeView historyMsg model specialAttributeName =
+specialAttributeView : Bool -> (Bool -> Msg -> HistoryMsg) -> Model -> String -> Html HistoryMsg
+specialAttributeView canEdit historyMsg model specialAttributeName =
     let
         specialAttribute =
             getSpecialAttribute specialAttributeName
@@ -519,14 +543,24 @@ specialAttributeView historyMsg model specialAttributeName =
         sharedAttributeView : List (Attribute HistoryMsg) -> Html HistoryMsg -> SpecialAttribute -> Html HistoryMsg
         sharedAttributeView attributeList attributeElement specialAttribute_ =
             card
-                (class "attribute"
-                    :: tabindex 0
-                    :: attributeList
+                (List.append
+                    [ class "attribute"
+                    , classList [ ( "pointer", canEdit ) ]
+                    ]
+                    attributeList
                 )
                 { title = text (capitalizeFirstLetter specialAttributeName)
                 , tooltip = specialAttribute_.tooltip ++ " Modifier is " ++ String.fromInt (specialAttribute_.accessor model.characterData - modifiers.attributeToMod)
                 , content = attributeElement
                 }
+
+        unfocusedAttributes =
+            case canEdit of
+                True ->
+                    [ tabindex 1 ]
+
+                False ->
+                    []
     in
     case specialAttribute of
         Nothing ->
@@ -540,7 +574,7 @@ specialAttributeView historyMsg model specialAttributeName =
 
             else
                 sharedAttributeView
-                    [ onFocus (historyMsg False (EditSection specialAttributeName)) ]
+                    (List.append [ onFocus (getCanEditMessage canEdit (historyMsg False (EditSection specialAttributeName))) ] unfocusedAttributes)
                     (h3 [] [ text (String.fromInt (specialAttribute_.accessor model.characterData)) ])
                     specialAttribute_
 
@@ -686,7 +720,7 @@ type alias Armor =
 
 armors =
     Dict.fromList
-        [ ( "none", Armor 0 0 0 )
+        [ ( "no armor", Armor 0 0 0 )
         , ( "light", Armor 1 2 -1 )
         , ( "medium", Armor 3 5 -2 )
         , ( "heavy", Armor 5 7 -4 )

@@ -40,7 +40,6 @@ header {
     align-items: center;
 
     .name-container {
-        cursor: pointer;
         width: 50vw;
         text-align: center;
 
@@ -59,6 +58,10 @@ header {
 
 section {
     align-items: start;
+}
+
+.pointer {
+    cursor: pointer;
 }
 
 .shadowed {
@@ -137,7 +140,6 @@ section {
 
 .attribute {
     @extend .text-center;
-    cursor: pointer;
 
     input {
         border-color: $background-color;
