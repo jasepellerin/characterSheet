@@ -36,7 +36,8 @@ const handleSuccessfulLogin = () => {
         })
         // })
     } else {
-        initializeElm(elmFlags)
+        console.log('No sheet with that id was found')
+        // Show existing sheets for this user and New Sheet button
     }
 }
 
