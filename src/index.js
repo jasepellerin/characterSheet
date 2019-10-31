@@ -13,6 +13,7 @@ console.log('user', user)
 console.log('id', id)
 const handleSuccessfulLogin = () => {
     if (id) {
+        console.log(getCharacterById)
         getCharacterById(id)
             .then(response => {
                 console.log('response', response)
@@ -33,8 +34,7 @@ if (user === null) {
 }
 
 netlifyIdentity.on('login', () => {
-    netlifyIdentity.close()
-    Elm.Main.init()
+    handleSuccessfulLogin()
 })
 netlifyIdentity.on('logout', () => {
     netlifyIdentity.open()
