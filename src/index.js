@@ -1,21 +1,45 @@
+/* eslint-disable no-console */
 import netlifyIdentity from 'netlify-identity-widget'
+import queryString from 'query-string'
 import { Elm } from './elm/Main'
+import getCharacterById from './utils/api'
 import './styles/main.scss'
 
 netlifyIdentity.init()
 const user = netlifyIdentity.currentUser()
-console.log(user)
-// if (user === null) {
-//     netlifyIdentity.open()
-// } else {
-//     Elm.Main.init()
-// }
-// netlifyIdentity.on('login', () => {
-//     netlifyIdentity.close()
-//     Elm.Main.init()
-// })
-fetch('/.netlify/functions/getCharacter/123', {
-    method: 'GET'
-}).then(response => {
-    return response.json()
+const { id } = queryString.parse(location.search)
+
+console.log('user', user)
+console.log('id', id)
+const handleSuccessfulLogin = () => {
+    if (id) {
+        getCharacterById(id)
+            .then(response => {
+                console.log('response', response)
+                Elm.Main.init(user, response)
+            })
+            .error(error => {
+                console.error('error', error)
+            })
+    } else {
+        Elm.Main.init(user, {})
+    }
+}
+
+if (user === null) {
+    netlifyIdentity.open()
+} else if (id) {
+    getCharacterById(id).then(response => {
+        handleSuccessfulLogin(response)
+    })
+} else {
+    handleSuccessfulLogin({})
+}
+
+netlifyIdentity.on('login', () => {
+    netlifyIdentity.close()
+    Elm.Main.init()
+})
+netlifyIdentity.on('logout', () => {
+    netlifyIdentity.open()
 })

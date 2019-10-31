@@ -1,9 +1,8 @@
 /* eslint-disable no-console */
-const faunadb = require('faunadb')
+import faunadb from 'faunadb'
+import getId from '../src/utils/getId'
 
-const getId = urlPath => urlPath.match(/([^\/]*)\/*$/)[0]
-
-const q = faunadb.query
+const fQuery = faunadb.query
 const client = new faunadb.Client({
     secret: process.env.FAUNADB_SERVER_SECRET
 })
@@ -12,7 +11,7 @@ exports.handler = async event => {
     const id = getId(event.path)
     console.log(`Function 'getCharacter' invoked. Read id: ${id}`)
     return client
-        .query(q.Get(q.Match(q.Index('by_id'), parseInt(id, 10))))
+        .query(fQuery.Get(fQuery.Match(fQuery.Index('by_id'), parseInt(id, 10))))
         .then(response => {
             console.log('success', response)
             return {
