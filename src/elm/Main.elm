@@ -51,7 +51,7 @@ type alias HistoryModel =
 
 modelInit =
     { characterData =
-        { name = "New Character"
+        { name = "Unnamed Wanderer"
         , level = 1
         , armorType = "none"
         , strength = 1
@@ -366,7 +366,7 @@ nameView : Model -> Html HistoryMsg
 nameView model =
     case model.editing == "name" of
         True ->
-            editableInput [ id "name", type_ "text" ] UpdateModel UpdateCharacterName
+            editableInput [ id "name", type_ "text", placeholder model.characterData.name ] UpdateModel UpdateCharacterName
 
         False ->
             h1 [] [ text model.characterData.name ]
@@ -488,11 +488,11 @@ specialAttributeView historyMsg model specialAttributeName =
 editableInput : List (Attribute HistoryMsg) -> (Bool -> Msg -> HistoryMsg) -> (String -> Msg) -> Html HistoryMsg
 editableInput attributes msg onChange =
     input
-        (List.concat[
-            [ on "blur" (Decode.succeed (msg False StopEditing))
-            , on "change" (changeDecoder (msg True) onChange)
-            ],
-            attributes
+        (List.concat
+            [ [ on "blur" (Decode.succeed (msg False StopEditing))
+              , on "change" (changeDecoder (msg True) onChange)
+              ]
+            , attributes
             ]
         )
         []
