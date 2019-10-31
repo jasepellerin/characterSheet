@@ -8,6 +8,13 @@ netlifyIdentity.init()
 const user = netlifyIdentity.currentUser()
 const id = parseInt(getId(location.href), 10)
 
+const initializeElm = initialData => {
+    const elmApp = Elm.Main.init(initialData)
+    elmApp.ports.log.subscribe(data => {
+        localStorage.setItem(`characterData:${id}`, JSON.stringify(data))
+    })
+}
+
 const handleSuccessfulLogin = () => {
     const elmData = {
         flags: {
@@ -16,19 +23,13 @@ const handleSuccessfulLogin = () => {
     }
     if (id) {
         api.getCharacterById(id).then(response => {
-            const elmApp = Elm.Main.init({
+            initializeElm({
                 ...elmData,
                 characterData: response
             })
-            elmApp.ports.log.subscribe(data => {
-                console.log(data)
-            })
         })
     } else {
-        const elmApp = Elm.Main.init(elmData)
-        elmApp.ports.log.subscribe(data => {
-            console.log(data)
-        })
+        initializeElm(elmData)
     }
 }
 
