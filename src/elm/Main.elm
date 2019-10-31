@@ -331,6 +331,14 @@ view historyModel =
             classList
                 [ ( "encumbered", encumbered )
                 ]
+
+        skillTotalClasses =
+            case getTotalAttributes data > modifiers.maximumAttributes of
+                True ->
+                    "invalid"
+
+                False ->
+                    ""
     in
     { body =
         [ header [] [ div [ class "name-container", onClick (UpdateModel False (EditSection "name")) ] [ nameView model ], h1 [] [ text ("Level " ++ String.fromInt data.level) ] ]
@@ -340,7 +348,7 @@ view historyModel =
                     (specialAttributeView UpdateModel model)
                     specialAttributeNames
                 )
-                [ div [ class "text-center" ] [ text ("Skill total: " ++ String.fromInt (getTotalAttributes data)) ] ]
+                [ div [ class "text-center", class skillTotalClasses ] [ text ("Skill total: " ++ String.fromInt (getTotalAttributes data)) ] ]
             )
         , sheetSection { title = "Stats", className = "derivedStatistics" }
             (List.map (card [ encumberedClasses ]) (derivedStatistics data encumbered))
@@ -613,6 +621,7 @@ modifiers =
     , moveCostBase = 3
     , encumberancePenalty = -2
     , untrainedCombat = -4
+    , maximumAttributes = 40
     }
 
 

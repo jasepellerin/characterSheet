@@ -69,6 +69,10 @@ section {
     align-items: center;
 }
 
+.invalid {
+    color: red;
+}
+
 .card {
     @extend .shadowed;
     min-height: 140px;
