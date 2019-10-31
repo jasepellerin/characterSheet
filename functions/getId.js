@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-useless-escape
-const getId = urlPath => urlPath.match(/([^\/]*)\/*$/)[0]
-
-export default getId
+module.exports = function getId(urlPath) {
+    // eslint-disable-next-line no-useless-escape
+    return urlPath.match(/([^\/]*)\/*$/)[0]
+}
