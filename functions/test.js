@@ -8,12 +8,12 @@ const client = new faunadb.Client({
     secret: process.env.FAUNADB_SERVER_SECRET
 })
 
-exports.handler = async event => {
-    const data = JSON.parse(event.body)
-    console.log('Function `todo-create` invoked', data)
+exports.handler = async (event, context) => {
+    console.log('event', event)
+    console.log('context', context)
     return {
         statusCode: 200,
-        body: JSON.stringify('Hello')
+        body: 'Hello, world'
     }
     /* construct the fauna query */
     // return client

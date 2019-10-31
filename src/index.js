@@ -4,13 +4,19 @@ import './styles/main.scss'
 
 netlifyIdentity.init()
 const user = netlifyIdentity.currentUser()
-if (user === null) {
-    netlifyIdentity.open()
-} else {
-    Elm.Main.init()
-}
+// if (user === null) {
+//     netlifyIdentity.open()
+// } else {
+//     Elm.Main.init()
+// }
 
-netlifyIdentity.on('login', () => {
-    netlifyIdentity.close()
-    Elm.Main.init()
+// netlifyIdentity.on('login', () => {
+//     netlifyIdentity.close()
+//     Elm.Main.init()
+// })
+
+fetch('/.netlify/functions/test', {
+    method: 'GET'
+}).then(response => {
+    return response.json()
 })
