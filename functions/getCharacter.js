@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 const faunadb = require('faunadb')
-const getId = require('./getId')
+const getId = require('./utils/getId')
 
 const fQuery = faunadb.query
 const client = new faunadb.Client({
