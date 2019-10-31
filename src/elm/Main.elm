@@ -5,9 +5,10 @@ import Browser.Dom as Dom
 import Browser.Events exposing (onKeyDown, onKeyUp)
 import Dict exposing (Dict)
 import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html.Attributes exposing (checked, class, classList, for, id, maxlength, placeholder, selected, tabindex, title, type_, value)
 import Html.Events exposing (on, onCheck, onClick, onDoubleClick, onFocus, onInput, stopPropagationOn)
-import Json.Decode as Decode exposing (at, decodeString, field, string)
+import Json.Decode as Decode exposing (at, bool, decodeString, field, int, string)
+import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode as Encode
 import List.Extra exposing (find)
 import Modules.CharacterData exposing (CharacterData)
@@ -23,7 +24,7 @@ port log : Encode.Value -> Cmd msg
 -- MAIN
 
 
-main : Program () HistoryModel HistoryMsg
+main : Program Decode.Value HistoryModel HistoryMsg
 main =
     Browser.document
         { init = init
@@ -79,9 +80,24 @@ historyModelInit =
     }
 
 
-init : () -> ( HistoryModel, Cmd HistoryMsg )
-init =
-    always ( historyModelInit, log (characterDataEncoder modelInit.characterData) )
+init : Decode.Value -> ( HistoryModel, Cmd HistoryMsg )
+init initialCharacterData =
+    let
+        decodedImportData =
+            case Decode.decodeValue importedDataDecoder initialCharacterData of
+                Ok decodedData ->
+                    decodedData
+
+                Err _ ->
+                    { userId = "", characterData = modelInit.characterData }
+
+        model =
+            historyModelInit.model
+
+        characterData =
+            historyModelInit.model.characterData
+    in
+    ( { historyModelInit | model = { model | characterData = decodedImportData.characterData } }, log (characterDataEncoder decodedImportData.characterData) )
 
 
 subscriptions : HistoryModel -> Sub HistoryMsg
@@ -652,6 +668,35 @@ armorToOption selectedArmor armorName =
 changeDecoder : (Msg -> HistoryMsg) -> (String -> Msg) -> Decode.Decoder HistoryMsg
 changeDecoder historyMsg msg =
     Decode.map (\value -> historyMsg (msg value)) (at [ "target", "value" ] string)
+
+
+type alias ImportedData =
+    { userId : String
+    , characterData : CharacterData
+    }
+
+
+importedDataDecoder : Decode.Decoder ImportedData
+importedDataDecoder =
+    Decode.map2 ImportedData
+        (field "userId" string)
+        (field "characterData" characterDataDecoder)
+
+
+characterDataDecoder : Decode.Decoder CharacterData
+characterDataDecoder =
+    Decode.succeed CharacterData
+        |> required "name" string
+        |> required "level" int
+        |> required "armorType" string
+        |> required "strength" int
+        |> required "perception" int
+        |> required "endurance" int
+        |> required "charisma" int
+        |> required "intelligence" int
+        |> required "agility" int
+        |> required "luck" int
+        |> hardcoded Dict.empty
 
 
 characterDataEncoder : CharacterData -> Encode.Value

@@ -10,29 +10,28 @@ const id = parseInt(getId(location.href), 10)
 const storageKey = `characterData:${id}`
 const localStorageCharacterData = JSON.parse(localStorage.getItem(storageKey))
 
-const initializeElm = initialData => {
-    const elmApp = Elm.Main.init(initialData)
+const initializeElm = flags => {
+    const elmApp = Elm.Main.init({ flags })
     elmApp.ports.log.subscribe(data => {
-        localStorage.setItem(storageKey, JSON.stringify(data))
+        // localStorage.setItem(storageKey, JSON.stringify(data))
+        console.log(data)
     })
 }
 
 const handleSuccessfulLogin = () => {
-    const elmData = {
-        flags: {
-            userId: user ? user.id : ''
-        }
+    const elmFlags = {
+        userId: user ? user.id : ''
     }
     if (id) {
         // api.getCharacterById(id).then(response => {
         console.log(localStorageCharacterData)
         initializeElm({
-            ...elmData,
+            ...elmFlags,
             characterData: localStorageCharacterData
         })
         // })
     } else {
-        initializeElm(elmData)
+        initializeElm(elmFlags)
     }
 }
 
