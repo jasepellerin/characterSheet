@@ -19,12 +19,12 @@ console.log(
 )
 const wslOptions = isWsl
     ? {
-          lazy: false,
-          watchOptions: {
-              aggregateTimeout: 200,
-              poll: true
-          }
-      }
+        lazy: false,
+        watchOptions: {
+            aggregateTimeout: 200,
+            poll: true
+        }
+    }
     : {}
 
 const common = {
@@ -169,7 +169,7 @@ if (MODE === 'production') {
                     use: {
                         loader: 'elm-webpack-loader',
                         options: {
-                            optimize: true
+                            // optimize: true
                         }
                     }
                 },
