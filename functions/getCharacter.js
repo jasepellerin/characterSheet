@@ -11,20 +11,11 @@ const client = new faunadb.Client({
 exports.handler = async event => {
     const id = getId(event.path)
     console.log(`Function 'getCharacter' invoked. Read id: ${id}`)
-    return client
-        .query(q.Get(q.Collections()))
-        .then(response => {
-            console.log('success', response)
-            return {
-                statusCode: 200,
-                body: JSON.stringify(response)
-            }
-        })
-        .catch(error => {
-            console.log('error', error)
-            return {
-                statusCode: 400,
-                body: JSON.stringify(error)
-            }
-        })
+    return client.query(q.Get(q.Match(q.Index('by_id'), id))).then(response => {
+        console.log('success', response)
+        return {
+            statusCode: 200,
+            body: JSON.stringify(response)
+        }
+    })
 }
