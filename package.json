@@ -6,7 +6,7 @@
     "author": "<jasepellerin@gmail.com>",
     "license": "MIT",
     "scripts": {
-        "build": "webpack -p",
+        "build": "webpack",
         "start": "webpack-dev-server --hot --colors --port 3000",
         "dev": "netlify dev",
         "analyse": "elm-analyse -s -p 3001 -o"
