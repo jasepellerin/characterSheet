@@ -28,12 +28,8 @@ const handleSuccessfulLogin = () => {
 
 if (user === null) {
     netlifyIdentity.open()
-} else if (id) {
-    getCharacterById(id).then(response => {
-        handleSuccessfulLogin(response)
-    })
 } else {
-    handleSuccessfulLogin({})
+    handleSuccessfulLogin()
 }
 
 netlifyIdentity.on('login', () => {
