@@ -13,7 +13,7 @@ console.log('user', user)
 console.log('id', id)
 const handleSuccessfulLogin = () => {
     if (id) {
-        console.log(getCharacterById)
+        console.log(getCharacterById(id))
         getCharacterById(id)
             .then(response => {
                 console.log('response', response)
