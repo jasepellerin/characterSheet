@@ -12,9 +12,9 @@ const localStorageCharacterData = JSON.parse(localStorage.getItem(storageKey))
 
 const initializeElm = flags => {
     const elmApp = Elm.Main.init({ flags })
-    elmApp.ports.log.subscribe(data => {
-        // localStorage.setItem(storageKey, JSON.stringify(data))
+    elmApp.ports.setCharacterData.subscribe(data => {
         console.log(data)
+        localStorage.setItem(storageKey, JSON.stringify(data))
     })
 }
 

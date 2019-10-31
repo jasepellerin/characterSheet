@@ -17,7 +17,7 @@ import Modules.SpecialAttribute exposing (SpecialAttribute, SpecialAttributeMsg(
 import Task
 
 
-port log : Encode.Value -> Cmd msg
+port setCharacterData : Encode.Value -> Cmd msg
 
 
 
@@ -97,7 +97,7 @@ init initialCharacterData =
         characterData =
             historyModelInit.model.characterData
     in
-    ( { historyModelInit | model = { model | characterData = decodedImportData.characterData } }, log (characterDataEncoder decodedImportData.characterData) )
+    ( { historyModelInit | model = { model | characterData = decodedImportData.characterData } }, Cmd.none )
 
 
 subscriptions : HistoryModel -> Sub HistoryMsg
@@ -211,6 +211,9 @@ update msg model =
     let
         characterData =
             model.characterData
+
+        updateLocalStorage =
+            \newModel -> setCharacterData (characterDataEncoder newModel)
     in
     case msg of
         EditSection sectionName ->
@@ -220,19 +223,35 @@ update msg model =
             ( model, Cmd.none )
 
         SetSkillTrained skillName value ->
-            ( { model | characterData = { characterData | skills = Dict.insert skillName value model.characterData.skills } }, Cmd.none )
+            let
+                newModel =
+                    { model | characterData = { characterData | skills = Dict.insert skillName value model.characterData.skills } }
+            in
+            ( newModel, updateLocalStorage newModel.characterData )
 
         StopEditing ->
             ( { model | editing = "" }, Cmd.none )
 
         UpdateArmor newArmor ->
-            ( { model | characterData = { characterData | armorType = newArmor } }, Cmd.none )
+            let
+                newModel =
+                    { model | characterData = { characterData | armorType = newArmor } }
+            in
+            ( newModel, updateLocalStorage newModel.characterData )
 
         UpdateAttribute abilityMsg value ->
-            ( { model | characterData = updateAttributeScore abilityMsg value model.characterData, editing = "" }, Cmd.none )
+            let
+                newModel =
+                    { model | characterData = updateAttributeScore abilityMsg value model.characterData, editing = "" }
+            in
+            ( newModel, updateLocalStorage newModel.characterData )
 
         UpdateCharacterName value ->
-            ( { model | characterData = { characterData | name = value }, editing = "" }, Cmd.none )
+            let
+                newModel =
+                    { model | characterData = { characterData | name = value }, editing = "" }
+            in
+            ( newModel, updateLocalStorage newModel.characterData )
 
 
 updateAttributeScore : SpecialAttributeMsg -> String -> CharacterData -> CharacterData
