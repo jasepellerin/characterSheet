@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
-import faunadb from 'faunadb'
-import getId from '../src/utils/getId'
+const faunadb = require('faunadb')
+const getId = require('../src/utils/getId')
 
 const fQuery = faunadb.query
 const client = new faunadb.Client({

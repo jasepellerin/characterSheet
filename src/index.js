@@ -22,14 +22,10 @@ console.log('user', user)
 console.log('id', id)
 const handleSuccessfulLogin = () => {
     if (id) {
-        getCharacterById(id)
-            .then(response => {
-                console.log('response', response)
-                Elm.Main.init(user, response)
-            })
-            .error(error => {
-                console.error('error', error)
-            })
+        getCharacterById(id).then(response => {
+            console.log('response', response)
+            Elm.Main.init(user, response)
+        })
     } else {
         Elm.Main.init(user, {})
     }
