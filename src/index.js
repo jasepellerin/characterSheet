@@ -7,11 +7,13 @@ import './styles/main.scss'
 netlifyIdentity.init()
 const user = netlifyIdentity.currentUser()
 const id = parseInt(getId(location.href), 10)
+const storageKey = `characterData:${id}`
+const localStorageCharacterData = JSON.parse(localStorage.getItem(storageKey))
 
 const initializeElm = initialData => {
     const elmApp = Elm.Main.init(initialData)
     elmApp.ports.log.subscribe(data => {
-        localStorage.setItem(`characterData:${id}`, JSON.stringify(data))
+        localStorage.setItem(storageKey, JSON.stringify(data))
     })
 }
 
@@ -22,12 +24,13 @@ const handleSuccessfulLogin = () => {
         }
     }
     if (id) {
-        api.getCharacterById(id).then(response => {
-            initializeElm({
-                ...elmData,
-                characterData: response
-            })
+        // api.getCharacterById(id).then(response => {
+        console.log(localStorageCharacterData)
+        initializeElm({
+            ...elmData,
+            characterData: localStorageCharacterData
         })
+        // })
     } else {
         initializeElm(elmData)
     }
