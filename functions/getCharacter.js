@@ -12,7 +12,7 @@ exports.handler = async event => {
     const id = getId(event.path)
     console.log(`Function 'getCharacter' invoked. Read id: ${id}`)
     return client
-        .query(q.Get(q.Match(q.Index('by_id'), id)))
+        .query(q.Get(q.Collections()))
         .then(response => {
             console.log('success', response)
             return {
