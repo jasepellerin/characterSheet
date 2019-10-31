@@ -12,8 +12,11 @@ const localStorageCharacterData = JSON.parse(localStorage.getItem(storageKey))
 
 const initializeElm = flags => {
     const elmApp = Elm.Main.init({ flags })
-    elmApp.ports.setCharacterData.subscribe(data => {
+    elmApp.ports.log.subscribe(data => {
         console.log(data)
+    })
+    elmApp.ports.setCharacterData.subscribe(data => {
+        console.log('setting', data)
         localStorage.setItem(storageKey, JSON.stringify(data))
     })
 }
@@ -24,7 +27,6 @@ const handleSuccessfulLogin = () => {
     }
     if (id) {
         // api.getCharacterById(id).then(response => {
-        console.log(localStorageCharacterData)
         initializeElm({
             ...elmFlags,
             characterData: localStorageCharacterData

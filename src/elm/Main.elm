@@ -8,7 +8,7 @@ import Html exposing (..)
 import Html.Attributes exposing (checked, class, classList, for, id, maxlength, placeholder, selected, tabindex, title, type_, value)
 import Html.Events exposing (on, onCheck, onClick, onDoubleClick, onFocus, onInput, stopPropagationOn)
 import Json.Decode as Decode exposing (at, bool, decodeString, field, int, string)
-import Json.Decode.Pipeline exposing (hardcoded, optional, required)
+import Json.Decode.Pipeline exposing (custom, hardcoded, optional, required)
 import Json.Encode as Encode
 import List.Extra exposing (find)
 import Modules.CharacterData exposing (CharacterData)
@@ -18,6 +18,9 @@ import Task
 
 
 port setCharacterData : Encode.Value -> Cmd msg
+
+
+port log : Encode.Value -> Cmd msg
 
 
 
@@ -81,15 +84,15 @@ historyModelInit =
 
 
 init : Decode.Value -> ( HistoryModel, Cmd HistoryMsg )
-init initialCharacterData =
+init flags =
     let
-        decodedImportData =
-            case Decode.decodeValue importedDataDecoder initialCharacterData of
+        ( decodedImportData, error ) =
+            case Decode.decodeValue importedDataDecoder flags of
                 Ok decodedData ->
-                    decodedData
+                    ( decodedData, "" )
 
-                Err _ ->
-                    { userId = "", characterData = modelInit.characterData }
+                Err err ->
+                    ( { userId = "", characterData = modelInit.characterData }, Decode.errorToString err )
 
         model =
             historyModelInit.model
@@ -97,7 +100,7 @@ init initialCharacterData =
         characterData =
             historyModelInit.model.characterData
     in
-    ( { historyModelInit | model = { model | characterData = decodedImportData.characterData } }, Cmd.none )
+    ( { historyModelInit | model = { model | characterData = decodedImportData.characterData } }, log (Encode.string error) )
 
 
 subscriptions : HistoryModel -> Sub HistoryMsg
@@ -715,7 +718,12 @@ characterDataDecoder =
         |> required "intelligence" int
         |> required "agility" int
         |> required "luck" int
-        |> hardcoded Dict.empty
+        |> custom (field "skills" characterSkillsDecoder)
+
+
+characterSkillsDecoder : Decode.Decoder (Dict String Bool)
+characterSkillsDecoder =
+    Decode.dict bool
 
 
 characterDataEncoder : CharacterData -> Encode.Value
