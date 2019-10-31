@@ -1,6 +1,6 @@
 import netlifyIdentity from 'netlify-identity-widget'
 import { Elm } from './elm/Main'
-import getCharacterById from './utils/api'
+import api from './utils/api'
 import getId from './utils/getId'
 import './styles/main.scss'
 
@@ -9,12 +9,20 @@ const user = netlifyIdentity.currentUser()
 const id = parseInt(getId(location.href), 10)
 
 const handleSuccessfulLogin = () => {
+    const elmData = {
+        flags: {
+            userId: user ? user.id : ''
+        }
+    }
     if (id) {
-        getCharacterById(id).then(response => {
-            Elm.Main.init(user, response)
+        api.getCharacterById(id).then(response => {
+            Elm.Main.init({
+                ...elmData,
+                characterData: response
+            })
         })
     } else {
-        Elm.Main.init(user, {})
+        Elm.Main.init(elmData)
     }
 }
 

@@ -1,11 +1,13 @@
+import isLocalHost from './isLocalHost'
+
+const prefix = isLocalHost() ? 'http://localhost:8888' : ''
+
 const getCharacterById = id => {
-    return fetch(`/.netlify/functions/getCharacter/${id}`, {
+    return fetch(`${prefix}/.netlify/functions/getCharacter/${id}`, {
         method: 'GET'
     }).then(response => {
         return response.json()
     })
 }
 
-export default {
-    getCharacterById
-}
+export default { getCharacterById }

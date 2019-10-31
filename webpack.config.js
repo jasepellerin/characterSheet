@@ -19,12 +19,12 @@ console.log(
 )
 const wslOptions = isWsl
     ? {
-        lazy: false,
-        watchOptions: {
-            aggregateTimeout: 200,
-            poll: true
-        }
-    }
+          lazy: false,
+          watchOptions: {
+              aggregateTimeout: 200,
+              poll: true
+          }
+      }
     : {}
 
 const common = {
@@ -130,6 +130,7 @@ if (MODE === 'development') {
             inline: true,
             stats: 'errors-only',
             contentBase: path.join(__dirname, 'src/assets'),
+            historyApiFallback: true,
             ...wslOptions
         },
         devtool: 'cheap-eval-source-map'
