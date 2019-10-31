@@ -5,10 +5,9 @@ import getCharacterById from './utils/api'
 import getId from './utils/getId'
 import './styles/main.scss'
 
-console.log(location, window.location)
 netlifyIdentity.init()
 const user = netlifyIdentity.currentUser()
-const { id } = parseInt(getId(location.href), 10)
+const id = parseInt(getId(location.href), 10)
 
 console.log('user', user)
 console.log('id', id)
