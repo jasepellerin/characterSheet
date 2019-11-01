@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import netlifyIdentity from 'netlify-identity-widget'
 import { Elm } from './elm/Main'
 import api from './utils/api'
@@ -37,10 +38,11 @@ const handleSuccessfulLogin = () => {
     if (id) {
         api.getCharacterById(id).then(response => {
             console.log(response)
+            const initialData = localStorageCharacterData || response.data
             initializeElm({
                 ...elmFlags,
                 dbData: response.data,
-                characterData: localStorageCharacterData
+                characterData: initialData
             })
         })
     } else {

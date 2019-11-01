@@ -128,8 +128,11 @@ init flags =
 
         characterData =
             historyModelInit.model.characterData
+
+        newModel =
+            { historyModelInit | localDbData = decodedDataFromDb, model = { model | characterData = decodedCharacterData, currentPlayerId = currentPlayerId } }
     in
-    ( { historyModelInit | localDbData = decodedDataFromDb, model = { model | characterData = decodedCharacterData, currentPlayerId = currentPlayerId } }, log dbResult )
+    ( newModel, Cmd.batch [ setLocalCharacterData (characterDataEncoder newModel.model.characterData), log dbResult ] )
 
 
 subscriptions : HistoryModel -> Sub HistoryMsg
