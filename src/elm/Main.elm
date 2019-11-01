@@ -696,7 +696,7 @@ getReadableArmorData ( armorName, armor ) =
         , String.fromInt armor.penalty
         , "more AP | Requires"
         , String.fromInt armor.enduranceRequirement
-        , "Endurance to wear correctly"
+        , "Endurance"
         ]
 
 
