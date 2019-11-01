@@ -351,6 +351,9 @@ updateAttributeScore abilityMsg value characterData =
         Luck ->
             { characterData | luck = getValidAttributeScoreFromInput characterData.luck value }
 
+        AttributeNoOp ->
+            characterData
+
 
 getIntFromInput : String -> Int
 getIntFromInput value =
@@ -638,8 +641,16 @@ specialAttributeView canEdit historyMsg model specialAttributeName =
         specialAttribute =
             getSpecialAttribute specialAttributeName
 
-        sharedAttributeView : List (Attribute HistoryMsg) -> Html HistoryMsg -> SpecialAttribute -> Html HistoryMsg
-        sharedAttributeView attributeList attributeElement specialAttribute_ =
+        ( specialAttributeValue, specialAttributeTooltip, specialAttributeMsg ) =
+            case specialAttribute of
+                Just specialAttribute_ ->
+                    ( specialAttribute_.accessor model.characterData, specialAttribute_.tooltip, specialAttribute_.msg )
+
+                Nothing ->
+                    ( -1, "", AttributeNoOp )
+
+        sharedAttributeView : List (Attribute HistoryMsg) -> Html HistoryMsg -> Html HistoryMsg
+        sharedAttributeView attributeList attributeElement =
             card
                 (List.append
                     [ class "attribute"
@@ -648,25 +659,18 @@ specialAttributeView canEdit historyMsg model specialAttributeName =
                     attributeList
                 )
                 { title = text (capitalizeFirstLetter specialAttributeName)
-                , tooltip = specialAttribute_.tooltip ++ " Modifier is " ++ String.fromInt (specialAttribute_.accessor model.characterData - modifiers.attributeToMod)
+                , tooltip = specialAttributeTooltip ++ " Modifier is " ++ String.fromInt (specialAttributeValue - modifiers.attributeToMod)
                 , content = attributeElement
                 }
     in
-    case specialAttribute of
-        Nothing ->
-            card [] { content = text "My bad lul", title = text "Something broke", tooltip = "" }
+    if specialAttributeName == model.editing then
+        sharedAttributeView []
+            (editableInput [ id specialAttributeName, type_ "number", maxlength 2, placeholder (String.fromInt specialAttributeValue) ] historyMsg (UpdateAttribute specialAttributeMsg))
 
-        Just specialAttribute_ ->
-            if specialAttributeName == model.editing then
-                sharedAttributeView []
-                    (editableInput [ id specialAttributeName, type_ "number", maxlength 2 ] historyMsg (UpdateAttribute specialAttribute_.msg))
-                    specialAttribute_
-
-            else
-                sharedAttributeView
-                    [ onDoubleClick (getCanEditMessage canEdit (historyMsg False (EditSection specialAttributeName))) ]
-                    (h3 [] [ text (String.fromInt (specialAttribute_.accessor model.characterData)) ])
-                    specialAttribute_
+    else
+        sharedAttributeView
+            [ onDoubleClick (getCanEditMessage canEdit (historyMsg False (EditSection specialAttributeName))) ]
+            (h3 [] [ text (String.fromInt specialAttributeValue) ])
 
 
 editableInput : List (Attribute HistoryMsg) -> (Bool -> Msg -> HistoryMsg) -> (String -> Msg) -> Html HistoryMsg

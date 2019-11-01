@@ -12,6 +12,7 @@ type SpecialAttributeMsg
     | Intelligence
     | Agility
     | Luck
+    | AttributeNoOp
 
 
 type alias SpecialAttribute =
