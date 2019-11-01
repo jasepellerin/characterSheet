@@ -85,9 +85,9 @@ if (user === null) {
 }
 
 netlifyIdentity.on('close', () => {
-    if (!netlifyIdentity.currentUser()) {
-        netlifyIdentity.open()
-    }
+    // if (!netlifyIdentity.currentUser()) {
+    //     netlifyIdentity.open()
+    // }
 })
 netlifyIdentity.on('login', () => {
     handleSuccessfulLogin()
