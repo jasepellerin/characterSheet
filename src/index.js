@@ -7,7 +7,9 @@ import logger from './utils/logger'
 
 netlifyIdentity.init()
 const user = netlifyIdentity.currentUser()
-const id = getId(location.href)
+console.log(location)
+const id = getId(location.pathname)
+console.log(id)
 const storageKey = `characterData:${id}`
 const localStorageCharacterData = JSON.parse(localStorage.getItem(storageKey))
 
