@@ -45,8 +45,9 @@ const initializeElm = flags => {
 }
 
 const handleSuccessfulLogin = () => {
+    const currentUser = user || netlifyIdentity.currentUser()
     const elmFlags = {
-        currentPlayerId: user ? user.id : ''
+        currentPlayerId: currentUser ? currentUser.id : ''
     }
     if (id) {
         api.getCharacterById(id).then(response => {
@@ -73,6 +74,11 @@ if (user === null) {
     handleSuccessfulLogin()
 }
 
+netlifyIdentity.on('close', () => {
+    if (!netlifyIdentity.currentUser()) {
+        netlifyIdentity.open()
+    }
+})
 netlifyIdentity.on('login', () => {
     handleSuccessfulLogin()
 })
