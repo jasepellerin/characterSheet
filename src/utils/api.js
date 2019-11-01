@@ -19,4 +19,13 @@ const updateCharacterById = (id, data) => {
     })
 }
 
-export default { getCharacterById, updateCharacterById }
+const createCharacter = data => {
+    return fetch(`${prefix}/.netlify/functions/createCharacter`, {
+        body: JSON.stringify(data),
+        method: 'POST'
+    }).then(response => {
+        return response.json()
+    })
+}
+
+export default { createCharacter, getCharacterById, updateCharacterById }

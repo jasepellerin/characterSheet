@@ -23,6 +23,9 @@ port setLocalCharacterData : Encode.Value -> Cmd msg
 port setDbCharacterData : Encode.Value -> Cmd msg
 
 
+port createCharacter : Encode.Value -> Cmd msg
+
+
 port log : Encode.Value -> Cmd msg
 
 
@@ -62,6 +65,7 @@ type alias HistoryModel =
     , shiftDown : Bool
     , saving : Bool
     , localDbData : CharacterData
+    , loading : Bool
     }
 
 
@@ -93,6 +97,7 @@ historyModelInit =
     , shiftDown = False
     , saving = False
     , localDbData = modelInit.characterData
+    , loading = False
     }
 
 
@@ -115,6 +120,7 @@ init flags =
                 Err _ ->
                     ""
 
+        -- TODO: Force logout if we don't have playerId
         ( decodedCharacterData, result ) =
             case Decode.decodeValue (characterDataDecoder "characterData") flags of
                 Ok decodedData ->
@@ -131,8 +137,24 @@ init flags =
 
         newModel =
             { historyModelInit | localDbData = decodedDataFromDb, model = { model | characterData = decodedCharacterData, currentPlayerId = currentPlayerId } }
+
+        needsCreation =
+            case Decode.decodeValue (field "needsCreation" bool) flags of
+                Ok needsCreation_ ->
+                    needsCreation_
+
+                Err _ ->
+                    False
+
+        ( finalModel, commands ) =
+            case needsCreation of
+                True ->
+                    ( { newModel | loading = True }, createCharacter (characterDataEncoder { characterData | playerId = currentPlayerId }) )
+
+                False ->
+                    ( newModel, Cmd.batch [ setLocalCharacterData (characterDataEncoder newModel.model.characterData), log dbResult ] )
     in
-    ( newModel, Cmd.batch [ setLocalCharacterData (characterDataEncoder newModel.model.characterData), log dbResult ] )
+    ( finalModel, commands )
 
 
 subscriptions : HistoryModel -> Sub HistoryMsg
@@ -444,39 +466,44 @@ view historyModel =
                     HistoryNoOp
     in
     { body =
-        [ header []
-            [ div
-                [ class "name-container"
-                , classList [ ( "pointer", canEdit ) ]
-                , onDoubleClick (getCanEditMessage canEdit (UpdateModel False (EditSection "name")))
+        case historyModel.loading of
+            True ->
+                [ div [ class "loader" ] [ i [ class "spinner la la-radiation-alt la-spin" ] [], span [] [ text "Initializing character sheet..." ] ] ]
+
+            False ->
+                [ header []
+                    [ div
+                        [ class "name-container"
+                        , classList [ ( "pointer", canEdit ) ]
+                        , onDoubleClick (getCanEditMessage canEdit (UpdateModel False (EditSection "name")))
+                        ]
+                        [ nameView model ]
+                    , h1 [] [ text ("Level " ++ String.fromInt data.level) ]
+                    , button [ disabled historyModel.saving, classList [ ( "hidden", not (hasUnsavedChanges && canEdit) ) ], onClick saveMessage ] [ text "Save" ]
+                    ]
+                , sheetSection { title = "Special", className = "attributes" }
+                    (List.append
+                        (List.map
+                            (specialAttributeView canEdit UpdateModel model)
+                            specialAttributeNames
+                        )
+                        [ div [ class "text-center", class skillTotalClasses ] [ text ("Skill total: " ++ String.fromInt (getTotalAttributes data)) ] ]
+                    )
+                , sheetSection { title = "Stats", className = "derivedStatistics" }
+                    (List.map (card [ encumberedClasses ]) (derivedStatistics data encumbered))
+                , sheetSection { title = "Gear", className = "additionalInfo" }
+                    [ card [ encumberedClasses ]
+                        { title = text "Armor Type"
+                        , content =
+                            armorSelectView canEdit (UpdateModel True << UpdateArmor) data.armorType
+                        , tooltip = String.join "\n\n" (List.map getReadableArmorData (getArmorListOrderedByArmorClass armors))
+                        }
+                    ]
+                , sheetSection { title = "Skills", className = "skills" }
+                    [ div [ class "grid-standard" ] (List.map (skillView canEdit True data) combatSkills)
+                    , div [ class "grid-standard two-column" ] (List.map (skillView canEdit False data) nonCombatSkills)
+                    ]
                 ]
-                [ nameView model ]
-            , h1 [] [ text ("Level " ++ String.fromInt data.level) ]
-            , button [ disabled historyModel.saving, classList [ ( "hidden", not (hasUnsavedChanges && canEdit) ) ], onClick saveMessage ] [ text "Save" ]
-            ]
-        , sheetSection { title = "Special", className = "attributes" }
-            (List.append
-                (List.map
-                    (specialAttributeView canEdit UpdateModel model)
-                    specialAttributeNames
-                )
-                [ div [ class "text-center", class skillTotalClasses ] [ text ("Skill total: " ++ String.fromInt (getTotalAttributes data)) ] ]
-            )
-        , sheetSection { title = "Stats", className = "derivedStatistics" }
-            (List.map (card [ encumberedClasses ]) (derivedStatistics data encumbered))
-        , sheetSection { title = "Gear", className = "additionalInfo" }
-            [ card [ encumberedClasses ]
-                { title = text "Armor Type"
-                , content =
-                    armorSelectView canEdit (UpdateModel True << UpdateArmor) data.armorType
-                , tooltip = String.join "\n\n" (List.map getReadableArmorData (getArmorListOrderedByArmorClass armors))
-                }
-            ]
-        , sheetSection { title = "Skills", className = "skills" }
-            [ div [ class "grid-standard" ] (List.map (skillView canEdit True data) combatSkills)
-            , div [ class "grid-standard two-column" ] (List.map (skillView canEdit False data) nonCombatSkills)
-            ]
-        ]
     , title = "Character Sheet - " ++ model.characterData.name
     }
 

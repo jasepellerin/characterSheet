@@ -102,6 +102,49 @@ button {
     }
 }
 
+.loader {
+    grid-column: 1/-1;
+    grid-row: 1/-1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: rgb(238, 163, 0);
+    animation: blur 4s infinite ease-out;
+
+    @-webkit-keyframes blur {
+        0% {
+            filter: blur(0);
+        }
+        60% {
+            filter: blur(0);
+        }
+        70% {
+            filter: blur(3px);
+        }
+        100% {
+            filter: blur(0px);
+        }
+    }
+
+    span {
+        font-family: 'Oxygen Mono', monospace;
+        margin-top: 15px;
+        font-size: 5rem;
+    }
+
+    .spinner {
+        display: inline-block;
+        position: relative;
+        font-size: 25rem;
+
+        &:before {
+            top: 1px;
+            position: relative;
+        }
+    }
+}
+
 .card {
     @extend .shadowed;
     min-height: 140px;
