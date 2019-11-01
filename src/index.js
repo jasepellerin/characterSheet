@@ -6,7 +6,7 @@ import './styles/main.scss'
 
 netlifyIdentity.init()
 const user = netlifyIdentity.currentUser()
-const id = parseInt(getId(location.href), 10)
+const id = getId(location.href)
 const storageKey = `characterData:${id}`
 const localStorageCharacterData = JSON.parse(localStorage.getItem(storageKey))
 
@@ -16,28 +16,30 @@ const initializeElm = flags => {
         console.log(data)
     })
     elmApp.ports.setLocalCharacterData.subscribe(data => {
-        console.log('setting', data)
+        console.log('setting in local storage', data)
         localStorage.setItem(storageKey, JSON.stringify(data))
     })
     elmApp.ports.setDbCharacterData.subscribe(data => {
         console.log('setting in db', data)
+        api.updateCharacterById(id, data)
     })
 }
 
 const handleSuccessfulLogin = () => {
     const elmFlags = {
-        currentUserId: user ? user.id : ''
+        currentPlayerId: user ? user.id : ''
     }
     if (id) {
-        // api.getCharacterById(id).then(response => {
-        initializeElm({
-            ...elmFlags,
-            characterData: localStorageCharacterData
+        api.getCharacterById(id).then(response => {
+            console.log(response)
+            initializeElm({
+                ...elmFlags,
+                characterData: response.data
+            })
         })
-        // })
     } else {
         console.log('No sheet with that id was found')
-        // Show existing sheets for this user and New Sheet button
+        // TODO: Show existing sheets for this user and New Sheet button
     }
 }
 

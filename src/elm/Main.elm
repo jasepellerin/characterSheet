@@ -47,7 +47,7 @@ main =
 type alias Model =
     { characterData : CharacterData
     , editing : String
-    , currentUserId : String
+    , currentPlayerId : String
     }
 
 
@@ -74,9 +74,9 @@ modelInit =
         , agility = 1
         , luck = 1
         , skills = Dict.empty
-        , userId = ""
+        , playerId = ""
         }
-    , currentUserId = ""
+    , currentPlayerId = ""
     , editing = ""
     }
 
@@ -94,10 +94,10 @@ historyModelInit =
 init : Decode.Value -> ( HistoryModel, Cmd HistoryMsg )
 init flags =
     let
-        currentUserId =
-            case Decode.decodeValue userIdDecoder flags of
-                Ok currentUserId_ ->
-                    currentUserId_
+        currentPlayerId =
+            case Decode.decodeValue playerIdDecoder flags of
+                Ok currentPlayerId_ ->
+                    currentPlayerId_
 
                 Err _ ->
                     ""
@@ -116,7 +116,7 @@ init flags =
         characterData =
             historyModelInit.model.characterData
     in
-    ( { historyModelInit | model = { model | characterData = decodedCharacterData, currentUserId = currentUserId } }, log result )
+    ( { historyModelInit | model = { model | characterData = decodedCharacterData, currentPlayerId = currentPlayerId } }, log result )
 
 
 subscriptions : HistoryModel -> Sub HistoryMsg
@@ -402,7 +402,7 @@ view historyModel =
                     ""
 
         canEdit =
-            model.currentUserId == data.userId
+            model.currentPlayerId == data.playerId
 
         hasUnsavedChanges =
             True
@@ -424,7 +424,7 @@ view historyModel =
                 ]
                 [ nameView model ]
             , h1 [] [ text ("Level " ++ String.fromInt data.level) ]
-            , button [ disabled historyModel.saving, classList [ ( "hidden", not hasUnsavedChanges ) ], onClick saveMessage ] [ text "Save" ]
+            , button [ disabled historyModel.saving, classList [ ( "hidden", not (hasUnsavedChanges && canEdit) ) ], onClick saveMessage ] [ text "Save" ]
             ]
         , sheetSection { title = "Special", className = "attributes" }
             (List.append
@@ -534,7 +534,7 @@ skillView canEdit isCombat data skill =
                 , b [] [ text (modifierPrefix ++ String.fromInt modifier) ]
                 , div [ class "checkbox-wrapper" ]
                     [ input [ type_ "checkbox", checked isTrained, onCheck (\checked -> getCanEditMessage canEdit ((UpdateModel True << SetSkillTrained skill.name) checked)), id skill.name ] []
-                    , label [ class "checkbox-label", for skill.name ] [ text "Trained" ]
+                    , label [ class "checkbox-label", classList [ ( "pointer", canEdit ) ], for skill.name ] [ text "Trained" ]
                     ]
                 ]
         , tooltip = ""
@@ -767,14 +767,14 @@ changeDecoder historyMsg msg =
 
 
 type alias ImportedData =
-    { currentUserId : String
+    { currentPlayerId : String
     , characterData : CharacterData
     }
 
 
-userIdDecoder : Decode.Decoder String
-userIdDecoder =
-    field "currentUserId" string
+playerIdDecoder : Decode.Decoder String
+playerIdDecoder =
+    field "currentPlayerId" string
 
 
 characterDataDecoder : Decode.Decoder CharacterData
@@ -791,7 +791,7 @@ characterDataDecoder =
         |> requiredAt [ "characterData", "agility" ] int
         |> requiredAt [ "characterData", "luck" ] int
         |> custom (at [ "characterData", "skills" ] characterSkillsDecoder)
-        |> requiredAt [ "characterData", "userId" ] string
+        |> requiredAt [ "characterData", "playerId" ] string
 
 
 characterSkillsDecoder : Decode.Decoder (Dict String Bool)
@@ -806,7 +806,7 @@ characterDataEncoder characterData =
             [ ( "name", Encode.string characterData.name )
             , ( "level", Encode.int characterData.level )
             , ( "armorType", Encode.string characterData.armorType )
-            , ( "userId", Encode.string characterData.userId )
+            , ( "playerId", Encode.string characterData.playerId )
             , ( "skills"
               , Encode.object
                     (Dict.values (Dict.map (\skillName -> \isTrained -> ( skillName, Encode.bool isTrained )) characterData.skills))

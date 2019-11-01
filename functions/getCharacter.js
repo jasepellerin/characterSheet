@@ -11,7 +11,7 @@ exports.handler = async event => {
     const id = getId(event.path)
     console.log(`Function 'getCharacter' invoked. Read id: ${id}`)
     return client
-        .query(fQuery.Get(fQuery.Match(fQuery.Index('by_id'), parseInt(id, 10))))
+        .query(fQuery.Get(fQuery.Ref(`classes/characters/${id}`)))
         .then(response => {
             console.log('success', response)
             return {
