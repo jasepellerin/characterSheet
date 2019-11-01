@@ -38,6 +38,7 @@ header {
     display: flex;
     justify-content: space-around;
     align-items: center;
+    font-family: 'Oxygen Mono', monospace;
 
     .name-container {
         width: 50vw;
@@ -52,6 +53,7 @@ header {
         input {
             font-size: 4rem;
             height: 6rem;
+            font-family: 'Oxygen Mono', monospace;
         }
     }
 }
