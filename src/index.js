@@ -53,6 +53,7 @@ const handleSuccessfulLogin = () => {
         api.getCharacterById(id).then(response => {
             logger(response)
             if (response.data) {
+                // Found in db
                 const initialData = localStorageCharacterData || response.data
                 initializeElm({
                     ...elmFlags,
@@ -60,6 +61,7 @@ const handleSuccessfulLogin = () => {
                     characterData: initialData
                 })
             } else {
+                // Could not find in db, create a new sheet
                 initializeElm({
                     ...elmFlags,
                     needsCreation: true
@@ -67,6 +69,7 @@ const handleSuccessfulLogin = () => {
             }
         })
     } else {
+        // No sheet id found, create a new sheet
         // TODO: Show existing sheets for this user and New Sheet button
         initializeElm({
             ...elmFlags,
