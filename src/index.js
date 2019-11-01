@@ -52,12 +52,19 @@ const handleSuccessfulLogin = () => {
     if (id) {
         api.getCharacterById(id).then(response => {
             logger(response)
-            const initialData = localStorageCharacterData || response.data
-            initializeElm({
-                ...elmFlags,
-                dbData: response.data,
-                characterData: initialData
-            })
+            if (response.data) {
+                const initialData = localStorageCharacterData || response.data
+                initializeElm({
+                    ...elmFlags,
+                    dbData: response.data,
+                    characterData: initialData
+                })
+            } else {
+                initializeElm({
+                    ...elmFlags,
+                    needsCreation: true
+                })
+            }
         })
     } else {
         // TODO: Show existing sheets for this user and New Sheet button
