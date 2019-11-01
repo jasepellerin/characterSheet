@@ -229,7 +229,7 @@ updateWithHistory msg historyModel =
                     ( historyModel, Cmd.none )
 
         UpdateDbData data ->
-            ( { historyModel | localDbData = data }, Cmd.none )
+            ( { historyModel | localDbData = data, saving = False }, Cmd.none )
 
         UpdateModel updateHistory modelMsg ->
             let
@@ -810,19 +810,28 @@ playerIdDecoder =
 
 characterDataDecoder : String -> Decode.Decoder CharacterData
 characterDataDecoder key =
+    let
+        atArray name =
+            case key == "" of
+                True ->
+                    [ name ]
+
+                False ->
+                    [ key, name ]
+    in
     Decode.succeed CharacterData
-        |> requiredAt [ key, "name" ] string
-        |> requiredAt [ key, "level" ] int
-        |> requiredAt [ key, "armorType" ] string
-        |> requiredAt [ key, "strength" ] int
-        |> requiredAt [ key, "perception" ] int
-        |> requiredAt [ key, "endurance" ] int
-        |> requiredAt [ key, "charisma" ] int
-        |> requiredAt [ key, "intelligence" ] int
-        |> requiredAt [ key, "agility" ] int
-        |> requiredAt [ key, "luck" ] int
-        |> custom (at [ key, "skills" ] characterSkillsDecoder)
-        |> requiredAt [ key, "playerId" ] string
+        |> requiredAt (atArray "name") string
+        |> requiredAt (atArray "level") int
+        |> requiredAt (atArray "armorType") string
+        |> requiredAt (atArray "strength") int
+        |> requiredAt (atArray "perception") int
+        |> requiredAt (atArray "endurance") int
+        |> requiredAt (atArray "charisma") int
+        |> requiredAt (atArray "intelligence") int
+        |> requiredAt (atArray "agility") int
+        |> requiredAt (atArray "luck") int
+        |> custom (at (atArray "skills") characterSkillsDecoder)
+        |> requiredAt (atArray "playerId") string
 
 
 characterSkillsDecoder : Decode.Decoder (Dict String Bool)
