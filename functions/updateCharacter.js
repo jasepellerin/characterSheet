@@ -10,9 +10,9 @@ const client = new faunadb.Client({
 exports.handler = async event => {
     const data = JSON.parse(event.body)
     const id = getId(event.path)
-    console.log(`Function 'updateCharacter' invoked. Update id: ${id}`)
+    console.log(`Function 'updateCharacter' invoked. Update id: ${id}}`, data)
     return client
-        .query(fQuery.Update(fQuery.Ref(`classes/characters/${id}`), data))
+        .query(fQuery.Replace(fQuery.Ref(`classes/characters/${id}`), { data }))
         .then(response => {
             console.log('success', response)
             return {
