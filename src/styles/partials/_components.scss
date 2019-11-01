@@ -114,7 +114,7 @@ button {
     color: rgb(238, 163, 0);
     animation: blur 4s infinite ease-out;
 
-    @-webkit-keyframes blur {
+    @keyframes blur {
         0% {
             filter: blur(0);
         }
@@ -125,7 +125,7 @@ button {
             filter: blur(3px);
         }
         100% {
-            filter: blur(0px);
+            filter: blur(0);
         }
     }
 
