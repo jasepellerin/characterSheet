@@ -235,6 +235,12 @@ button {
     grid-template-columns: 1fr 2fr;
 }
 
+.skill {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    align-items: center;
+}
+
 .encumbered {
     background-color: $encumbered-color;
 }

@@ -584,15 +584,15 @@ skillView canEdit isCombat data skill =
     card []
         { title = text (getPrettyName skill.name)
         , content =
-            div [ class "flex" ]
-                [ h2 [] [ text (modifierPrefix ++ String.fromInt totalScore) ]
+            div [ class "skill" ]
+                [ h2 [] [ text (String.fromInt totalScore) ]
                 , b [] [ text (modifierPrefix ++ String.fromInt modifier) ]
                 , div [ class "checkbox-wrapper" ]
                     [ input [ type_ "checkbox", checked isTrained, onCheck (\checked -> getCanEditMessage canEdit ((UpdateModel True << SetSkillTrained skill.name) checked)), id skill.name ] []
                     , label [ class "checkbox-label", classList [ ( "pointer", canEdit ) ], for skill.name ] [ text "Trained" ]
                     ]
                 ]
-        , tooltip = ""
+        , tooltip = "Governed by " ++ capitalizeFirstLetter skill.attribute
         }
 
 

@@ -13,9 +13,9 @@ type alias CharacterSkills =
 
 combatSkills : List Skill
 combatSkills =
-    [ { name = "energy_weapons", attribute = "intelligence" }
+    [ { name = "energy_weapons", attribute = "perception" }
     , { name = "explosives", attribute = "perception" }
-    , { name = "guns", attribute = "perception" }
+    , { name = "guns", attribute = "agility" }
     , { name = "melee_weapons", attribute = "strength" }
     , { name = "unarmed", attribute = "endurance" }
     ]
@@ -26,6 +26,7 @@ nonCombatSkills =
     [ { name = "barter", attribute = "charisma" }
     , { name = "lockpick", attribute = "perception" }
     , { name = "medicine", attribute = "intelligence" }
+    , { name = "repair", attribute = "intelligence" }
     , { name = "science", attribute = "intelligence" }
     , { name = "sneak", attribute = "agility" }
     , { name = "speech", attribute = "charisma" }
