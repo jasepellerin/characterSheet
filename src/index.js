@@ -13,7 +13,7 @@ const localStorageCharacterData = JSON.parse(localStorage.getItem(storageKey))
 const initializeElm = flags => {
     const elmApp = Elm.Main.init({ flags })
     elmApp.ports.log.subscribe(data => {
-        console.log(data)
+        console.log('logging from Elm', data)
     })
     elmApp.ports.setLocalCharacterData.subscribe(data => {
         console.log('setting in local storage', data)
@@ -21,7 +21,12 @@ const initializeElm = flags => {
     })
     elmApp.ports.setDbCharacterData.subscribe(data => {
         console.log('setting in db', data)
-        api.updateCharacterById(id, data)
+        api.updateCharacterById(id, data).then(response => {
+            console.log('response', response)
+            if (response && response.data) {
+                elmApp.ports.updateDbData.send(response.data)
+            }
+        })
     })
 }
 
@@ -34,7 +39,8 @@ const handleSuccessfulLogin = () => {
             console.log(response)
             initializeElm({
                 ...elmFlags,
-                characterData: response.data
+                dbData: response.data,
+                characterData: localStorageCharacterData
             })
         })
     } else {

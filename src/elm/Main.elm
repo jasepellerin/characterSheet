@@ -6,7 +6,7 @@ import Browser.Events exposing (onKeyDown, onKeyUp)
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (checked, class, classList, disabled, for, id, maxlength, placeholder, selected, tabindex, title, type_, value)
-import Html.Events exposing (on, onCheck, onClick, onDoubleClick, onFocus, onInput, stopPropagationOn)
+import Html.Events exposing (on, onCheck, onClick, onDoubleClick, onInput)
 import Json.Decode as Decode exposing (at, bool, decodeString, field, int, string)
 import Json.Decode.Pipeline exposing (custom, hardcoded, optional, requiredAt)
 import Json.Encode as Encode
@@ -24,6 +24,9 @@ port setDbCharacterData : Encode.Value -> Cmd msg
 
 
 port log : Encode.Value -> Cmd msg
+
+
+port updateDbData : (Encode.Value -> msg) -> Sub msg
 
 
 
@@ -58,6 +61,7 @@ type alias HistoryModel =
     , controlDown : Bool
     , shiftDown : Bool
     , saving : Bool
+    , localDbData : CharacterData
     }
 
 
@@ -65,7 +69,7 @@ modelInit =
     { characterData =
         { name = "Unnamed Wanderer"
         , level = 1
-        , armorType = "none"
+        , armorType = "no armor"
         , strength = 1
         , perception = 1
         , endurance = 1
@@ -88,12 +92,21 @@ historyModelInit =
     , controlDown = False
     , shiftDown = False
     , saving = False
+    , localDbData = modelInit.characterData
     }
 
 
 init : Decode.Value -> ( HistoryModel, Cmd HistoryMsg )
 init flags =
     let
+        ( decodedDataFromDb, dbResult ) =
+            case Decode.decodeValue (characterDataDecoder "dbData") flags of
+                Ok decodedData ->
+                    ( decodedData, characterDataEncoder decodedData )
+
+                Err err ->
+                    ( modelInit.characterData, Encode.string (Decode.errorToString err) )
+
         currentPlayerId =
             case Decode.decodeValue playerIdDecoder flags of
                 Ok currentPlayerId_ ->
@@ -103,7 +116,7 @@ init flags =
                     ""
 
         ( decodedCharacterData, result ) =
-            case Decode.decodeValue characterDataDecoder flags of
+            case Decode.decodeValue (characterDataDecoder "characterData") flags of
                 Ok decodedData ->
                     ( decodedData, characterDataEncoder decodedData )
 
@@ -116,12 +129,12 @@ init flags =
         characterData =
             historyModelInit.model.characterData
     in
-    ( { historyModelInit | model = { model | characterData = decodedCharacterData, currentPlayerId = currentPlayerId } }, log result )
+    ( { historyModelInit | localDbData = decodedDataFromDb, model = { model | characterData = decodedCharacterData, currentPlayerId = currentPlayerId } }, log dbResult )
 
 
 subscriptions : HistoryModel -> Sub HistoryMsg
 subscriptions model =
-    Sub.batch [ onKeyDown (updateKey True), onKeyUp (updateKey False) ]
+    Sub.batch [ onKeyDown (updateKey True), onKeyUp (updateKey False), updateDbData updateLocalDbData ]
 
 
 
@@ -144,6 +157,7 @@ type HistoryMsg
     | SaveDataToDb
     | Undo
     | UpdateKey String Bool
+    | UpdateDbData CharacterData
     | UpdateModel Bool Msg
 
 
@@ -214,6 +228,9 @@ updateWithHistory msg historyModel =
                 _ ->
                     ( historyModel, Cmd.none )
 
+        UpdateDbData data ->
+            ( { historyModel | localDbData = data }, Cmd.none )
+
         UpdateModel updateHistory modelMsg ->
             let
                 ( model, cmd ) =
@@ -247,8 +264,16 @@ update msg model =
 
         SetSkillTrained skillName value ->
             let
+                newSkillDict =
+                    case value of
+                        True ->
+                            Dict.insert skillName value model.characterData.skills
+
+                        False ->
+                            Dict.remove skillName model.characterData.skills
+
                 newModel =
-                    { model | characterData = { characterData | skills = Dict.insert skillName value model.characterData.skills } }
+                    { model | characterData = { characterData | skills = newSkillDict } }
             in
             ( newModel, updateLocalStorage newModel.characterData )
 
@@ -405,7 +430,7 @@ view historyModel =
             model.currentPlayerId == data.playerId
 
         hasUnsavedChanges =
-            True
+            historyModel.localDbData /= model.characterData
 
         saveMessage =
             case canEdit of
@@ -420,7 +445,7 @@ view historyModel =
             [ div
                 [ class "name-container"
                 , classList [ ( "pointer", canEdit ) ]
-                , onClick (getCanEditMessage canEdit (UpdateModel False (EditSection "name")))
+                , onDoubleClick (getCanEditMessage canEdit (UpdateModel False (EditSection "name")))
                 ]
                 [ nameView model ]
             , h1 [] [ text ("Level " ++ String.fromInt data.level) ]
@@ -563,6 +588,20 @@ updateKey value =
     Decode.map getMsg (field "key" string)
 
 
+updateLocalDbData : Encode.Value -> HistoryMsg
+updateLocalDbData encodedData =
+    let
+        decodedData =
+            Decode.decodeValue (characterDataDecoder "") encodedData
+    in
+    case decodedData of
+        Ok data_ ->
+            UpdateDbData data_
+
+        Err _ ->
+            HistoryNoOp
+
+
 specialAttributeView : Bool -> (Bool -> Msg -> HistoryMsg) -> Model -> String -> Html HistoryMsg
 specialAttributeView canEdit historyMsg model specialAttributeName =
     let
@@ -582,14 +621,6 @@ specialAttributeView canEdit historyMsg model specialAttributeName =
                 , tooltip = specialAttribute_.tooltip ++ " Modifier is " ++ String.fromInt (specialAttribute_.accessor model.characterData - modifiers.attributeToMod)
                 , content = attributeElement
                 }
-
-        unfocusedAttributes =
-            case canEdit of
-                True ->
-                    [ tabindex 1 ]
-
-                False ->
-                    []
     in
     case specialAttribute of
         Nothing ->
@@ -603,7 +634,7 @@ specialAttributeView canEdit historyMsg model specialAttributeName =
 
             else
                 sharedAttributeView
-                    (List.append [ onFocus (getCanEditMessage canEdit (historyMsg False (EditSection specialAttributeName))) ] unfocusedAttributes)
+                    [ onDoubleClick (getCanEditMessage canEdit (historyMsg False (EditSection specialAttributeName))) ]
                     (h3 [] [ text (String.fromInt (specialAttribute_.accessor model.characterData)) ])
                     specialAttribute_
 
@@ -777,21 +808,21 @@ playerIdDecoder =
     field "currentPlayerId" string
 
 
-characterDataDecoder : Decode.Decoder CharacterData
-characterDataDecoder =
+characterDataDecoder : String -> Decode.Decoder CharacterData
+characterDataDecoder key =
     Decode.succeed CharacterData
-        |> requiredAt [ "characterData", "name" ] string
-        |> requiredAt [ "characterData", "level" ] int
-        |> requiredAt [ "characterData", "armorType" ] string
-        |> requiredAt [ "characterData", "strength" ] int
-        |> requiredAt [ "characterData", "perception" ] int
-        |> requiredAt [ "characterData", "endurance" ] int
-        |> requiredAt [ "characterData", "charisma" ] int
-        |> requiredAt [ "characterData", "intelligence" ] int
-        |> requiredAt [ "characterData", "agility" ] int
-        |> requiredAt [ "characterData", "luck" ] int
-        |> custom (at [ "characterData", "skills" ] characterSkillsDecoder)
-        |> requiredAt [ "characterData", "playerId" ] string
+        |> requiredAt [ key, "name" ] string
+        |> requiredAt [ key, "level" ] int
+        |> requiredAt [ key, "armorType" ] string
+        |> requiredAt [ key, "strength" ] int
+        |> requiredAt [ key, "perception" ] int
+        |> requiredAt [ key, "endurance" ] int
+        |> requiredAt [ key, "charisma" ] int
+        |> requiredAt [ key, "intelligence" ] int
+        |> requiredAt [ key, "agility" ] int
+        |> requiredAt [ key, "luck" ] int
+        |> custom (at [ key, "skills" ] characterSkillsDecoder)
+        |> requiredAt [ key, "playerId" ] string
 
 
 characterSkillsDecoder : Decode.Decoder (Dict String Bool)
