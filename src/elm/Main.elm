@@ -399,6 +399,10 @@ derivedStatistics data encumbered =
       , content = h3 [] [ text (getApModifierText data encumbered ++ " AP") ]
       , tooltip = "Modifier to AP roll (" ++ String.fromInt modifiers.apBase ++ " +  Agility score - Armor penalties)"
       }
+    , { title = text "Boons"
+      , content = h2 [] [ text (String.fromInt (ceiling (toFloat data.luck / 2)) ++ " d6") ]
+      , tooltip = "Spend one of these to add a d6 to any roll, move an extra square, or just help something go your way."
+      }
     ]
 
 
@@ -500,11 +504,6 @@ view historyModel =
                         , content =
                             armorSelectView canEdit (UpdateModel True << UpdateArmor) data.armorType
                         , tooltip = String.join "\n\n" (List.map getReadableArmorData (getArmorListOrderedByArmorClass armors))
-                        }
-                    , card []
-                        { title = text "Boons"
-                        , content = h2 [] [ text (String.fromInt (ceiling (toFloat data.luck / 2)) ++ " d6") ]
-                        , tooltip = "Spend one of these to add a d6 to any roll, move an extra square, or just help something go your way."
                         }
                     ]
                 , sheetSection { title = "Skills", className = "skills" }
@@ -664,7 +663,7 @@ specialAttributeView canEdit historyMsg model specialAttributeName =
                     attributeList
                 )
                 { title = text (capitalizeFirstLetter specialAttributeName)
-                , tooltip = specialAttributeTooltip ++ " Modifier is " ++ String.fromInt (specialAttributeValue - modifiers.attributeToMod)
+                , tooltip = specialAttributeTooltip ++ " Modifier is " ++ String.fromInt (getAttributeModifier specialAttributeValue)
                 , content = attributeElement
                 }
     in
@@ -699,7 +698,9 @@ getReadableArmorData ( armorName, armor ) =
         , String.fromInt armor.armorClass
         , "AC | Moves cost"
         , String.fromInt armor.penalty
-        , "more AP | Requires"
+        , "more AP | Dodge "
+        , String.fromFloat armor.dodgeMultiplier
+        , "* Agility mod AC | Requires"
         , String.fromInt armor.enduranceRequirement
         , "Endurance"
         ]
@@ -721,14 +722,21 @@ getTotalArmorClass data =
 
 
 getArmorBonus : CharacterData -> Int
-getArmorBonus { armorType, endurance } =
+getArmorBonus { agility, armorType, endurance } =
     case maybeArmor armorType of
         Just armor ->
+            let
+                dodgeBonus =
+                    floor (toFloat (getAttributeModifier agility) * armor.dodgeMultiplier)
+
+                armorClass =
+                    armor.armorClass + dodgeBonus
+            in
             if endurance < armor.enduranceRequirement then
-                Basics.max 0 (armor.armorClass + modifiers.encumberancePenalty)
+                Basics.max 0 (armorClass + modifiers.encumberancePenalty)
 
             else
-                Basics.max 0 armor.armorClass
+                Basics.max 0 armorClass
 
         Nothing ->
             0
@@ -802,7 +810,7 @@ modifiers =
     { apBase = 10
     , attributeToMod = 5
     , hpBase = 10
-    , acBase = 12
+    , acBase = 10
     , moveCostBase = 3
     , encumberancePenalty = -2
     , untrainedCombat = -4
@@ -814,15 +822,16 @@ type alias Armor =
     { armorClass : Int
     , enduranceRequirement : Int
     , penalty : Int
+    , dodgeMultiplier : Float
     }
 
 
 armors =
     Dict.fromList
-        [ ( "no armor", Armor 0 0 0 )
-        , ( "light", Armor 1 2 -1 )
-        , ( "medium", Armor 3 5 -2 )
-        , ( "heavy", Armor 5 7 -4 )
+        [ ( "no armor", Armor 0 0 0 1 )
+        , ( "light", Armor 2 3 -1 0.75 )
+        , ( "medium", Armor 4 5 -2 0.5 )
+        , ( "heavy", Armor 7 7 -4 0 )
         ]
 
 
@@ -845,6 +854,11 @@ type alias ImportedData =
 playerIdDecoder : Decode.Decoder String
 playerIdDecoder =
     field "currentPlayerId" string
+
+
+getAttributeModifier : Int -> Int
+getAttributeModifier attributeScore =
+    attributeScore - modifiers.attributeToMod
 
 
 characterDataDecoder : String -> Decode.Decoder CharacterData
