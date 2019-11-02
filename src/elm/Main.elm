@@ -735,7 +735,7 @@ getMoveCost { agility, armorType, endurance } =
         Just armor ->
             let
                 unencumberedMoveCost =
-                    modifiers.moveCostBase - armor.penalty
+                    modifiers.moveCostBase - (2 * armor.penalty)
             in
             if endurance < armor.enduranceRequirement then
                 Basics.max modifiers.moveCostBase (unencumberedMoveCost - (2 * modifiers.encumberancePenalty))
