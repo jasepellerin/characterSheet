@@ -403,6 +403,10 @@ derivedStatistics data encumbered =
       , content = h2 [] [ text (String.fromInt (ceiling (toFloat data.luck / 2)) ++ " d6") ]
       , tooltip = "Spend one of these to add a d6 to any roll, move an extra square, or just help something go your way."
       }
+    , { title = text "Critical Hit Roll"
+      , content = h2 [] [ text (String.fromInt (getCriticalHitRoll data.luck)) ]
+      , tooltip = "If you roll this number or higher, you score a critical hit"
+      }
     ]
 
 
@@ -606,6 +610,18 @@ skillView canEdit isCombat data skill =
 getPrettyName : String -> String
 getPrettyName name =
     String.split "_" name |> List.map capitalizeFirstLetter |> String.join " "
+
+
+getCriticalHitRoll : Int -> Int
+getCriticalHitRoll luck =
+    if luck >= 10 then
+        18
+
+    else if luck >= 6 then
+        19
+
+    else
+        20
 
 
 updateKey : Bool -> Decode.Decoder HistoryMsg
