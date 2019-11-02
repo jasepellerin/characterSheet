@@ -501,6 +501,11 @@ view historyModel =
                             armorSelectView canEdit (UpdateModel True << UpdateArmor) data.armorType
                         , tooltip = String.join "\n\n" (List.map getReadableArmorData (getArmorListOrderedByArmorClass armors))
                         }
+                    , card []
+                        { title = text "Boons"
+                        , content = h2 [] [ text (String.fromInt (ceiling (toFloat data.luck / 2)) ++ " d6") ]
+                        , tooltip = "Spend one of these to add a d6 to any roll, move an extra square, or just help something go your way."
+                        }
                     ]
                 , sheetSection { title = "Skills", className = "skills" }
                     [ div [ class "grid-standard" ] (List.map (skillView canEdit True data) combatSkills)
