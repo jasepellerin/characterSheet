@@ -713,7 +713,7 @@ getReadableArmorData ( armorName, armor ) =
         , "|"
         , String.fromInt armor.armorClass
         , "AC | Moves cost"
-        , String.fromInt armor.penalty
+        , String.fromInt armor.moveCostPenalty
         , "more AP | Dodge "
         , String.fromFloat armor.dodgeMultiplier
         , "* Agility mod AC | Requires"
@@ -764,7 +764,7 @@ getMoveCost { agility, armorType, endurance } =
         Just armor ->
             let
                 unencumberedMoveCost =
-                    modifiers.moveCostBase - (2 * armor.penalty)
+                    modifiers.moveCostBase - armor.moveCostPenalty
             in
             if endurance < armor.enduranceRequirement then
                 Basics.max modifiers.moveCostBase (unencumberedMoveCost - (2 * modifiers.encumberancePenalty))
@@ -837,7 +837,7 @@ modifiers =
 type alias Armor =
     { armorClass : Int
     , enduranceRequirement : Int
-    , penalty : Int
+    , moveCostPenalty : Int
     , dodgeMultiplier : Float
     }
 
@@ -845,9 +845,9 @@ type alias Armor =
 armors =
     Dict.fromList
         [ ( "no armor", Armor 0 0 0 1 )
-        , ( "light", Armor 2 3 -1 0.75 )
-        , ( "medium", Armor 4 5 -2 0.5 )
-        , ( "heavy", Armor 7 7 -4 0 )
+        , ( "light", Armor 2 3 -2 0.75 )
+        , ( "medium", Armor 4 5 -4 0.5 )
+        , ( "heavy", Armor 7 7 -8 0 )
         ]
 
 
