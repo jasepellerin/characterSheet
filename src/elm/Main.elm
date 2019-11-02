@@ -393,7 +393,7 @@ derivedStatistics data encumbered =
       }
     , { title = text "Move Cost"
       , content = h3 [] [ text (String.fromInt (getMoveCost data) ++ " AP") ]
-      , tooltip = "AP cost to move on tile (" ++ String.fromInt modifiers.moveCostBase ++ " +  Agility modifier - Armor penalties)"
+      , tooltip = "AP cost to move one tile (" ++ String.fromInt modifiers.moveCostBase ++ " - Armor penalties)"
       }
     , { title = text "AP Modifier"
       , content = h3 [] [ text (getApModifierText data encumbered ++ " AP") ]
@@ -735,7 +735,7 @@ getMoveCost { agility, armorType, endurance } =
         Just armor ->
             let
                 unencumberedMoveCost =
-                    modifiers.moveCostBase - (agility - modifiers.attributeToMod) - armor.penalty
+                    modifiers.moveCostBase - armor.penalty
             in
             if endurance < armor.enduranceRequirement then
                 Basics.max 4 (unencumberedMoveCost - (2 * modifiers.encumberancePenalty))
