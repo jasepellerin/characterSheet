@@ -738,10 +738,10 @@ getMoveCost { agility, armorType, endurance } =
                     modifiers.moveCostBase - armor.penalty
             in
             if endurance < armor.enduranceRequirement then
-                Basics.max 4 (unencumberedMoveCost - (2 * modifiers.encumberancePenalty))
+                Basics.max modifiers.moveCostBase (unencumberedMoveCost - (2 * modifiers.encumberancePenalty))
 
             else
-                Basics.max 4 unencumberedMoveCost
+                Basics.max modifiers.moveCostBase unencumberedMoveCost
 
         Nothing ->
             20
@@ -798,7 +798,7 @@ modifiers =
     , attributeToMod = 5
     , hpBase = 10
     , acBase = 12
-    , moveCostBase = 3
+    , moveCostBase = 4
     , encumberancePenalty = -2
     , untrainedCombat = -4
     , maximumAttributes = 40
