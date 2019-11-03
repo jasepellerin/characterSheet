@@ -401,7 +401,7 @@ derivedStatistics data encumbered =
       }
     , { title = text "Boons"
       , content = h2 [] [ text (String.fromInt (ceiling (toFloat data.luck / 2))) ]
-      , tooltip = "Spend one of these to gain advantage on any roll, add 1d6 to damage, gain 10 AP, or just help something go your way."
+      , tooltip = "Spend one of these to gain advantage on any roll, add 1d6 to damage, gain 10 AP, or just to tip the scales in your favor."
       }
     , { title = text "Critical Hit Roll"
       , content = h2 [] [ text (String.fromInt (getCriticalHitRoll data.luck)) ]
