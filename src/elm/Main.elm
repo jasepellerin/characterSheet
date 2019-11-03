@@ -845,9 +845,9 @@ type alias Armor =
 armors =
     Dict.fromList
         [ ( "no armor", Armor 0 0 0 1 )
-        , ( "light", Armor 2 3 -2 0.75 )
-        , ( "medium", Armor 4 5 -4 0.5 )
-        , ( "heavy", Armor 7 7 -8 0 )
+        , ( "light", Armor 2 3 -1 0.75 )
+        , ( "medium", Armor 4 5 -2 0.5 )
+        , ( "heavy", Armor 7 7 -4 0 )
         ]
 
 
