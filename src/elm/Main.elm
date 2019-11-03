@@ -186,6 +186,7 @@ type Msg
 
 type HistoryMsg
     = HistoryNoOp
+    | HistoryLog String
     | Redo
     | SaveDataToDb
     | Undo
@@ -200,11 +201,14 @@ updateWithHistory msg historyModel =
         HistoryNoOp ->
             ( historyModel, Cmd.none )
 
+        HistoryLog message ->
+            ( historyModel, log (Encode.string message) )
+
         Redo ->
             case historyModel.undoHistory of
                 newModel :: newUndoHistory ->
                     ( { historyModel
-                        | model = { modelInit | characterData = newModel.characterData }
+                        | model = { newModel | editing = "" }
                         , history = historyModel.model :: historyModel.history
                         , undoHistory = newUndoHistory
                       }
@@ -222,8 +226,8 @@ updateWithHistory msg historyModel =
                 newModel :: newHistory ->
                     ( { historyModel
                         | model =
-                            { modelInit
-                                | characterData = newModel.characterData
+                            { newModel
+                                | editing = ""
                             }
                         , history = newHistory
                         , undoHistory = historyModel.model :: historyModel.undoHistory
@@ -235,7 +239,7 @@ updateWithHistory msg historyModel =
                     ( historyModel, Cmd.none )
 
         UpdateKey key value ->
-            case String.toLower key of
+            case key of
                 "control" ->
                     ( { historyModel | controlDown = value }, Cmd.none )
 
@@ -635,16 +639,20 @@ getCriticalHitRoll luck =
 updateKey : Bool -> Decode.Decoder HistoryMsg
 updateKey value =
     let
-        values =
+        validKeys =
             [ "control", "meta", "shift", "z" ]
 
         getMsg key =
-            case List.member key values of
+            let
+                lowercaseKey =
+                    String.toLower key
+            in
+            case List.member lowercaseKey validKeys of
                 True ->
-                    UpdateKey key value
+                    UpdateKey lowercaseKey value
 
                 False ->
-                    HistoryNoOp
+                    HistoryLog lowercaseKey
     in
     Decode.map getMsg (field "key" string)
 
