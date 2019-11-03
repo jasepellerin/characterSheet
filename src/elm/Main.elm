@@ -400,8 +400,8 @@ derivedStatistics data encumbered =
       , tooltip = "Modifier to AP roll (" ++ String.fromInt modifiers.apBase ++ " +  Agility score - Armor penalties)"
       }
     , { title = text "Boons"
-      , content = h2 [] [ text (String.fromInt (ceiling (toFloat data.luck / 2)) ++ " d6") ]
-      , tooltip = "Spend one of these to add a d6 to any roll, move an extra square, or just help something go your way."
+      , content = h2 [] [ text (String.fromInt (ceiling (toFloat data.luck / 2))) ]
+      , tooltip = "Spend one of these to gain advantage on any roll, add 1d6 to damage, gain 10 AP, or just help something go your way."
       }
     , { title = text "Critical Hit Roll"
       , content = h2 [] [ text (String.fromInt (getCriticalHitRoll data.luck)) ]
