@@ -146,13 +146,21 @@ init flags =
                 Err _ ->
                     False
 
+        canEdit =
+            newModel.model.characterData.playerId == currentPlayerId
+
         ( finalModel, commands ) =
             case needsCreation of
                 True ->
                     ( { newModel | loading = True }, createCharacter (characterDataEncoder { characterData | playerId = currentPlayerId }) )
 
                 False ->
-                    ( newModel, Cmd.batch [ setLocalCharacterData (characterDataEncoder newModel.model.characterData), log dbResult ] )
+                    case canEdit of
+                        True ->
+                            ( newModel, Cmd.batch [ setLocalCharacterData (characterDataEncoder newModel.model.characterData), log dbResult ] )
+
+                        False ->
+                            ( newModel, log dbResult )
     in
     ( finalModel, commands )
 
