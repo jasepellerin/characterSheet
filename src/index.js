@@ -12,36 +12,37 @@ const storageKey = `characterData:${id}`
 const localStorageCharacterData = JSON.parse(localStorage.getItem(storageKey))
 
 const initializeElm = flags => {
-    const elmApp = Elm.Main.init({ flags })
+    // const elmApp = Elm.Main.init({ flags })
+    const elmApp = Elm.Main.init()
     elmApp.ports.log.subscribe(data => {
         logger('Logging from Elm', data)
     })
-    elmApp.ports.setLocalCharacterData.subscribe(data => {
-        logger('Setting data in local storage', data)
-        localStorage.setItem(storageKey, JSON.stringify(data))
-    })
-    elmApp.ports.setDbCharacterData.subscribe(data => {
-        logger('Setting data in db', data)
-        api.updateCharacterById(id, data).then(response => {
-            logger('response', response)
-            if (response && response.data) {
-                elmApp.ports.updateDbData.send(response.data)
-            }
-        })
-    })
-    elmApp.ports.createCharacter.subscribe(data => {
-        logger('Creating new character', data)
-        api.createCharacter(data).then(response => {
-            logger('response', response)
-            if (response && response.ref) {
-                logger(response.ref)
-                // For dramatic effect
-                setTimeout(() => {
-                    location.href = `${location.protocol}//${location.host}/${response.ref['@ref'].id}`
-                }, 5000)
-            }
-        })
-    })
+    // elmApp.ports.setLocalCharacterData.subscribe(data => {
+    //     logger('Setting data in local storage', data)
+    //     localStorage.setItem(storageKey, JSON.stringify(data))
+    // })
+    // elmApp.ports.setDbCharacterData.subscribe(data => {
+    //     logger('Setting data in db', data)
+    //     api.updateCharacterById(id, data).then(response => {
+    //         logger('response', response)
+    //         if (response && response.data) {
+    //             elmApp.ports.updateDbData.send(response.data)
+    //         }
+    //     })
+    // })
+    // elmApp.ports.createCharacter.subscribe(data => {
+    //     logger('Creating new character', data)
+    //     api.createCharacter(data).then(response => {
+    //         logger('response', response)
+    //         if (response && response.ref) {
+    //             logger(response.ref)
+    //             // For dramatic effect
+    //             setTimeout(() => {
+    //                 location.href = `${location.protocol}//${location.host}/${response.ref['@ref'].id}`
+    //             }, 5000)
+    //         }
+    //     })
+    // })
 }
 
 const handleSuccessfulLogin = () => {
@@ -49,18 +50,17 @@ const handleSuccessfulLogin = () => {
     const elmFlags = {
         currentPlayerId: currentUser ? currentUser.id : ''
     }
-    const elmApp = Elm.Main.init({ flags: 'hello' })
     // if (id) {
     //     api.getCharacterById(id).then(response => {
     //         logger(response)
     //         if (response.data) {
     //             // Found in db
     //             const initialData = localStorageCharacterData || response.data
-    //             initializeElm({
-    //                 ...elmFlags,
-    //                 dbData: response.data,
-    //                 characterData: initialData
-    //             })
+    initializeElm({
+        ...elmFlags
+        // dbData: response.data,
+        // characterData: initialData
+    })
     //         } else {
     //             // Could not find in db, create a new sheet
     //             initializeElm({

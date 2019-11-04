@@ -1,13 +1,22 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 import Browser
 import Browser.Navigation as Nav
 import Dict exposing (Dict)
 import Html exposing (a, text)
 import Html.Attributes exposing (href)
+import Json.Encode as Encode
 import Modules.Player exposing (Player)
 import Pages.CharacterSelect as CharacterSelect
+import Route exposing (Route(..), fromUrl)
 import Url exposing (Url)
+
+
+
+-- PORTS
+
+
+port log : Encode.Value -> Cmd msg
 
 
 
@@ -32,9 +41,9 @@ convertModel model converter subModel =
             model
 
 
-init : String -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url navKey =
-    ( { navKey = navKey, page = "/", player = Player "" Dict.empty }, Cmd.none )
+    changeRoute (Route.fromUrl url) { navKey = navKey, page = "/", player = Player "" Dict.empty }
 
 
 subscriptions : Model -> Sub Msg
@@ -77,7 +86,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ChangedUrl url ->
-            changeRoute url model
+            changeRoute (Route.fromUrl url) model
 
         ClickedLink request ->
             case request of
@@ -95,9 +104,17 @@ update msg model =
             ( model, Cmd.none )
 
 
-changeRoute : Url -> Model -> ( Model, Cmd Msg )
-changeRoute url model =
-    ( model, Cmd.none )
+changeRoute : Maybe Route -> Model -> ( Model, Cmd Msg )
+changeRoute maybeRoute model =
+    case maybeRoute of
+        Nothing ->
+            ( model, log (Encode.string "Nothing ") )
+
+        Just Route.CharacterSelect ->
+            ( model, log (Encode.string "CharacterSelect ") )
+
+        Just (Route.CharacterSheet _) ->
+            ( model, log (Encode.string "CharacterSheet ") )
 
 
 updateWith : ModelConverter -> (subMsg -> Msg) -> Model -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )
@@ -107,16 +124,11 @@ updateWith toModel toMsg model ( subModel, subCmd ) =
     )
 
 
-changeUrl : Url -> Msg
-changeUrl url =
-    NoOp
-
-
 
 -- MAIN
 
 
-main : Program String Model Msg
+main : Program () Model Msg
 main =
     Browser.application
         { init = init
