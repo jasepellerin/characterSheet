@@ -25,7 +25,7 @@ port log : Encode.Value -> Cmd msg
 
 type alias Model =
     { navKey : Nav.Key
-    , page : String
+    , route : Route
     , player : Player
     }
 
@@ -43,7 +43,7 @@ convertModel model converter subModel =
 
 init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url navKey =
-    changeRoute (Route.fromUrl url) { navKey = navKey, page = "/", player = Player "" Dict.empty }
+    changeRoute (Route.fromUrl url) { navKey = navKey, route = Route.CharacterSelect, player = Player "" Dict.empty }
 
 
 subscriptions : Model -> Sub Msg
@@ -56,18 +56,18 @@ subscriptions model =
 
 
 view : Model -> Browser.Document Msg
-view { page, player } =
+view { route, player } =
     let
         makePage toMsg { content, title } =
             Browser.Document title (List.map (Html.map toMsg) [ content ])
     in
-    case page of
-        "home" ->
+    case route of
+        CharacterSelect ->
             makePage GotCharacterSelectMsg (CharacterSelect.view { player = player })
 
         _ ->
-            { body = [ a [ href "/home" ] [ text "hi" ] ]
-            , title = "Hello"
+            { body = [ a [ href "/characters" ] [ text "hi" ] ]
+            , title = "Nothing found"
             }
 
 
@@ -108,13 +108,13 @@ changeRoute : Maybe Route -> Model -> ( Model, Cmd Msg )
 changeRoute maybeRoute model =
     case maybeRoute of
         Nothing ->
-            ( model, log (Encode.string "Nothing ") )
+            ( model, log (Encode.string "Not found") )
 
         Just Route.CharacterSelect ->
-            ( model, log (Encode.string "CharacterSelect ") )
+            ( { model | route = Route.CharacterSelect }, log (Encode.string "CharacterSelect") )
 
-        Just (Route.CharacterSheet _) ->
-            ( model, log (Encode.string "CharacterSheet ") )
+        Just (Route.CharacterSheet slug) ->
+            ( { model | route = Route.CharacterSheet slug }, log (Encode.string "CharacterSheet") )
 
 
 updateWith : ModelConverter -> (subMsg -> Msg) -> Model -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )
