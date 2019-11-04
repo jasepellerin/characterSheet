@@ -1,7 +1,7 @@
 module Main exposing (main)
 
 import Browser
-import Browser.Navigation
+import Browser.Navigation as Nav
 import Dict exposing (Dict)
 import Html exposing (a, text)
 import Html.Attributes exposing (href)
@@ -11,27 +11,12 @@ import Url exposing (Url)
 
 
 
--- MAIN
-
-
-main : Program String Model Msg
-main =
-    Browser.application
-        { init = init
-        , onUrlRequest = handleUrlRequest
-        , onUrlChange = changeUrl
-        , subscriptions = subscriptions
-        , update = update
-        , view = view
-        }
-
-
-
 -- MODEL
 
 
 type alias Model =
-    { page : String
+    { navKey : Nav.Key
+    , page : String
     , player : Player
     }
 
@@ -47,15 +32,9 @@ convertModel model converter subModel =
             model
 
 
-modelInit =
-    { page = "/"
-    , player = Player "" Dict.empty
-    }
-
-
-init : String -> Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
-init flags url key =
-    ( modelInit, Cmd.none )
+init : String -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init flags url navKey =
+    ( { navKey = navKey, page = "/", player = Player "" Dict.empty }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -89,6 +68,7 @@ view { page, player } =
 
 type Msg
     = ChangedUrl Url
+    | ClickedLink Browser.UrlRequest
     | GotCharacterSelectMsg CharacterSelect.Msg
     | NoOp
 
@@ -98,6 +78,14 @@ update msg model =
     case msg of
         ChangedUrl url ->
             changeRoute url model
+
+        ClickedLink request ->
+            case request of
+                Browser.Internal url ->
+                    ( model, Nav.pushUrl model.navKey (Url.toString url) )
+
+                Browser.External url ->
+                    ( model, Nav.load url )
 
         GotCharacterSelectMsg msg_ ->
             CharacterSelect.update msg_ { player = model.player }
@@ -119,11 +107,22 @@ updateWith toModel toMsg model ( subModel, subCmd ) =
     )
 
 
-handleUrlRequest : Browser.UrlRequest -> Msg
-handleUrlRequest request =
-    NoOp
-
-
 changeUrl : Url -> Msg
 changeUrl url =
     NoOp
+
+
+
+-- MAIN
+
+
+main : Program String Model Msg
+main =
+    Browser.application
+        { init = init
+        , onUrlChange = ChangedUrl
+        , onUrlRequest = ClickedLink
+        , subscriptions = subscriptions
+        , update = update
+        , view = view
+        }
