@@ -8,6 +8,7 @@ import Html.Attributes exposing (href)
 import Json.Encode as Encode
 import Modules.Player exposing (Player)
 import Pages.CharacterSelect as CharacterSelect
+import Pages.CharacterSheet as CharacterSheet
 import Route exposing (Route(..), fromUrl)
 import Url exposing (Url)
 
@@ -32,12 +33,16 @@ type alias Model =
 
 type ModelConverter
     = CharacterSelectConverter
+    | CharacterSheetConverter
 
 
 convertModel : Model -> ModelConverter -> subModel -> Model
 convertModel model converter subModel =
     case converter of
         CharacterSelectConverter ->
+            model
+
+        CharacterSheetConverter ->
             model
 
 
@@ -65,10 +70,8 @@ view { route, player } =
         CharacterSelect ->
             makePage GotCharacterSelectMsg (CharacterSelect.view { player = player })
 
-        _ ->
-            { body = [ a [ href "/characters" ] [ text "hi" ] ]
-            , title = "Nothing found"
-            }
+        CharacterSheet slug ->
+            makePage GotCharacterSheetMsg (CharacterSheet.view { player = player, characterId = slug })
 
 
 
@@ -79,6 +82,7 @@ type Msg
     = ChangedUrl Url
     | ClickedLink Browser.UrlRequest
     | GotCharacterSelectMsg CharacterSelect.Msg
+    | GotCharacterSheetMsg CharacterSheet.Msg
     | NoOp
 
 
@@ -99,6 +103,10 @@ update msg model =
         GotCharacterSelectMsg msg_ ->
             CharacterSelect.update msg_ { player = model.player }
                 |> updateWith CharacterSelectConverter GotCharacterSelectMsg model
+
+        GotCharacterSheetMsg msg_ ->
+            CharacterSheet.update msg_ { player = model.player }
+                |> updateWith CharacterSheetConverter GotCharacterSheetMsg model
 
         NoOp ->
             ( model, Cmd.none )

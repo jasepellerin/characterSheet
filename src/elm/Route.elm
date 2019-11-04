@@ -1,4 +1,4 @@
-module Route exposing (Route(..), fromUrl)
+module Route exposing (Route(..), fromUrl, toHref)
 
 import Url exposing (Url)
 import Url.Parser as Parser exposing ((</>), Parser, oneOf, s, string)
@@ -21,6 +21,16 @@ parser =
 fromUrl : Url -> Maybe Route
 fromUrl url =
     Parser.parse parser url
+
+
+toHref : Route -> String
+toHref route =
+    case route of
+        CharacterSelect ->
+            "/characters"
+
+        CharacterSheet slug ->
+            "/character/" ++ slug
 
 
 routeToString : Route -> String

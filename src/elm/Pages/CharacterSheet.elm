@@ -1,4 +1,4 @@
-module Pages.CharacterSelect exposing (Msg, update, view)
+module Pages.CharacterSheet exposing (Msg, update, view)
 
 import Browser
 import Dict exposing (Dict)
@@ -11,12 +11,14 @@ import Modules.Player exposing (Player)
 
 
 type alias Model =
-    { player : Player
+    { characterId : String
+    , player : Player
     }
 
 
 modelInit =
-    { player = Player "" Dict.empty
+    { characterId = ""
+    , player = Player "" Dict.empty
     }
 
 
@@ -26,8 +28,8 @@ modelInit =
 
 view : Model -> { content : Html Msg, title : String }
 view model =
-    { content = div [] [ text "Select" ]
-    , title = "Select"
+    { content = div [] [ text model.characterId ]
+    , title = "Sheet"
     }
 
 
