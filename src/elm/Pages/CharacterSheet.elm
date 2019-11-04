@@ -27,8 +27,14 @@ modelInit =
 
 
 view : Model -> { content : Html Msg, title : String }
-view model =
-    { content = div [] [ text model.characterId ]
+view { characterId, player } =
+    { content =
+        case Dict.member characterId player.characters of
+            True ->
+                div [] [ text characterId ]
+
+            False ->
+                div [] [ text "No character with this ID was found" ]
     , title = "Sheet"
     }
 
