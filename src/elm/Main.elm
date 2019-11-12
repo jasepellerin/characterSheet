@@ -28,19 +28,20 @@ type alias Model =
     { navKey : Nav.Key
     , route : Route
     , player : Player
+    , test : String
     }
 
 
 type ModelConverter
-    = CharacterSelectConverter
+    = CharacterSelectConverter CharacterSelect.Model
     | CharacterSheetConverter
 
 
-convertModel : Model -> ModelConverter -> subModel -> Model
-convertModel model converter subModel =
+convertModel : Model -> ModelConverter -> Model
+convertModel model converter =
     case converter of
-        CharacterSelectConverter ->
-            model
+        CharacterSelectConverter subModel ->
+            { model | test = subModel.test }
 
         CharacterSheetConverter ->
             model
@@ -48,7 +49,7 @@ convertModel model converter subModel =
 
 init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url navKey =
-    changeRoute (Route.fromUrl url) { navKey = navKey, route = Route.CharacterSelect, player = Player "" Dict.empty }
+    changeRoute (Route.fromUrl url) { navKey = navKey, route = Route.CharacterSelect, player = Player "" Dict.empty, test = "" }
 
 
 subscriptions : Model -> Sub Msg
@@ -61,14 +62,14 @@ subscriptions model =
 
 
 view : Model -> Browser.Document Msg
-view { route, player } =
+view { route, player, test } =
     let
         makePage toMsg { content, title } =
             Browser.Document title (List.map (Html.map toMsg) [ content ])
     in
     case route of
         CharacterSelect ->
-            makePage GotCharacterSelectMsg (CharacterSelect.view { player = player })
+            makePage GotCharacterSelectMsg (CharacterSelect.view { player = player, test = test })
 
         CharacterSheet slug ->
             makePage GotCharacterSheetMsg (CharacterSheet.view { player = player, characterId = slug })
@@ -101,8 +102,8 @@ update msg model =
                     ( model, Nav.load url )
 
         GotCharacterSelectMsg msg_ ->
-            CharacterSelect.update msg_ { player = model.player }
-                |> updateWith CharacterSelectConverter GotCharacterSelectMsg model
+            CharacterSelect.update msg_ { player = model.player, test = model.test }
+                |> (\( subModel, subCmd ) -> updateWith (CharacterSelectConverter subModel) GotCharacterSelectMsg model subCmd)
 
         GotCharacterSheetMsg msg_ ->
             CharacterSheet.update msg_ { player = model.player }
@@ -125,9 +126,9 @@ changeRoute maybeRoute model =
             ( { model | route = Route.CharacterSheet slug }, log (Encode.string "CharacterSheet") )
 
 
-updateWith : ModelConverter -> (subMsg -> Msg) -> Model -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )
-updateWith toModel toMsg model ( subModel, subCmd ) =
-    ( convertModel model toModel subModel
+updateWith : ModelConverter -> (subMsg -> Msg) -> Model -> Cmd subMsg -> ( Model, Cmd Msg )
+updateWith toModel toMsg model subCmd =
+    ( convertModel model toModel
     , Cmd.map toMsg subCmd
     )
 
