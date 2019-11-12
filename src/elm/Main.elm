@@ -34,7 +34,7 @@ type alias Model =
 
 type ModelConverter
     = CharacterSelectConverter CharacterSelect.Model
-    | CharacterSheetConverter
+    | CharacterSheetConverter CharacterSheet.Model
 
 
 convertModel : Model -> ModelConverter -> Model
@@ -43,7 +43,7 @@ convertModel model converter =
         CharacterSelectConverter subModel ->
             { model | test = subModel.test }
 
-        CharacterSheetConverter ->
+        CharacterSheetConverter subModel ->
             model
 
 
@@ -106,8 +106,8 @@ update msg model =
                 |> (\( subModel, subCmd ) -> updateWith (CharacterSelectConverter subModel) GotCharacterSelectMsg model subCmd)
 
         GotCharacterSheetMsg msg_ ->
-            CharacterSheet.update msg_ { player = model.player }
-                |> updateWith CharacterSheetConverter GotCharacterSheetMsg model
+            CharacterSheet.update msg_ { player = model.player, characterId = "" }
+                |> (\( subModel, subCmd ) -> updateWith (CharacterSheetConverter subModel) GotCharacterSheetMsg model subCmd)
 
         NoOp ->
             ( model, Cmd.none )

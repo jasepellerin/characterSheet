@@ -1,11 +1,15 @@
 module Pages.CharacterSelect exposing (Model, Msg, update, view)
 
+import Api.Endpoint as Endpoint
+import Api.Main as Api
 import Browser
 import Dict exposing (Dict)
 import Html exposing (Html, div, text)
 import Html.Events exposing (onClick)
 import Http
+import Json.Decode as Decode
 import Modules.Player exposing (Player)
+import Url exposing (Url)
 
 
 
@@ -41,10 +45,7 @@ view model =
 
 getChar : Cmd Msg
 getChar =
-    Http.get
-        { url = "http://localhost:8888/.netlify/functions/getCharacter/247935186137776658"
-        , expect = Http.expectString GotText
-        }
+    Api.get (Endpoint.getCharacter "247935186137776658") GotText (Decode.at [ "data", "armorType" ] Decode.string)
 
 
 type Msg

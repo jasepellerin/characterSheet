@@ -1,4 +1,4 @@
-module Pages.CharacterSheet exposing (Msg, update, view)
+module Pages.CharacterSheet exposing (Model, Msg, update, view)
 
 import Browser
 import Dict exposing (Dict)
