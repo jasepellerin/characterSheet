@@ -2,6 +2,7 @@ module Pages.CharacterSheet exposing (Model, Msg, update, view)
 
 import Api.Endpoint as Endpoint
 import Api.Main as Api
+import Api.UrlBuilder exposing (UrlBuilder)
 import Browser
 import Dict exposing (Dict)
 import Html exposing (Html, div, text)
@@ -18,12 +19,7 @@ type alias Model a =
     { a
         | selectedCharacterId : String
         , player : Player
-    }
-
-
-modelInit =
-    { selectedCharacterId = ""
-    , player = Player "" Dict.empty
+        , urlBuilder : UrlBuilder
     }
 
 
@@ -48,14 +44,14 @@ view { selectedCharacterId, player } =
 -- UPDATE
 
 
-getChar : Cmd Msg
-getChar =
-    Api.get (Endpoint.getCharacter "247935186137776658") GotText (Decode.at [ "data", "armorType" ] Decode.string)
+getChar : UrlBuilder -> Cmd Msg
+getChar urlBuilder =
+    Api.get (Endpoint.getCharacter urlBuilder "247935186137776658") GotText (Decode.at [ "data", "armorType" ] Decode.string)
 
 
 type Msg
     = GotText (Result Http.Error String)
-    | HandleClick
+    | HandleClick UrlBuilder
     | NoOp
 
 
@@ -64,8 +60,8 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
-        HandleClick ->
-            ( model, getChar )
+        HandleClick urlBuilder ->
+            ( model, getChar urlBuilder )
 
         GotText result ->
             ( model, Cmd.none )

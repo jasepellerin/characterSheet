@@ -1,7 +1,7 @@
 module Api.Endpoint exposing (Endpoint, createCharacter, getCharacter, request, updateCharacter)
 
+import Api.UrlBuilder exposing (UrlBuilder)
 import Http
-import Url.Builder exposing (QueryParameter)
 
 
 {-| Http.request, except it takes an Endpoint instead of a Url.
@@ -41,9 +41,9 @@ unwrap (Endpoint urlString) =
     urlString
 
 
-url : List String -> Endpoint
-url paths =
-    Url.Builder.absolute
+url : UrlBuilder -> List String -> Endpoint
+url urlBuilder paths =
+    urlBuilder
         (List.append [ ".netlify", "functions" ] paths)
         []
         |> Endpoint
@@ -53,16 +53,16 @@ url paths =
 -- ENDPOINTS
 
 
-getCharacter : String -> Endpoint
-getCharacter slug =
-    url [ "getCharacter", slug ]
+getCharacter : UrlBuilder -> String -> Endpoint
+getCharacter urlBuilder slug =
+    url urlBuilder [ "getCharacter", slug ]
 
 
-updateCharacter : String -> Endpoint
-updateCharacter slug =
-    url [ "updateCharacter", slug ]
+updateCharacter : UrlBuilder -> String -> Endpoint
+updateCharacter urlBuilder slug =
+    url urlBuilder [ "updateCharacter", slug ]
 
 
-createCharacter : Endpoint
-createCharacter =
-    url [ "createCharacter" ]
+createCharacter : UrlBuilder -> Endpoint
+createCharacter urlBuilder =
+    url urlBuilder [ "createCharacter" ]

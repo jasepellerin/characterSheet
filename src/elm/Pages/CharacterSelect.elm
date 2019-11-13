@@ -2,6 +2,7 @@ module Pages.CharacterSelect exposing (Model, Msg, update, view)
 
 import Api.Endpoint as Endpoint
 import Api.Main as Api
+import Api.UrlBuilder exposing (UrlBuilder)
 import Browser
 import Dict exposing (Dict)
 import Html exposing (Html, div, text)
@@ -20,6 +21,7 @@ type alias Model a =
     { a
         | player : Player
         , selectedCharacterId : String
+        , urlBuilder : UrlBuilder
     }
 
 
@@ -28,8 +30,8 @@ type alias Model a =
 
 
 view : Model a -> { content : Html Msg, title : String }
-view model =
-    { content = div [] [ div [] [ text model.selectedCharacterId ], div [ onClick HandleClick ] [ text "Click" ] ]
+view { selectedCharacterId, urlBuilder } =
+    { content = div [] [ div [] [ text selectedCharacterId ], div [ onClick (HandleClick urlBuilder) ] [ text "Click" ] ]
     , title = "Hello"
     }
 
@@ -38,14 +40,14 @@ view model =
 -- UPDATE
 
 
-getChar : Cmd Msg
-getChar =
-    Api.get (Endpoint.getCharacter "247935186137776658") GotText (Decode.at [ "data", "armorType" ] Decode.string)
+getChar : UrlBuilder -> Cmd Msg
+getChar urlBuilder =
+    Api.get (Endpoint.getCharacter urlBuilder "247935186137776658") GotText (Decode.at [ "data", "armorType" ] Decode.string)
 
 
 type Msg
     = NoOp
-    | HandleClick
+    | HandleClick UrlBuilder
     | GotText (Result Http.Error String)
 
 
@@ -54,8 +56,8 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
-        HandleClick ->
-            ( model, getChar )
+        HandleClick urlBuilder ->
+            ( model, getChar urlBuilder )
 
         GotText result ->
             ( model, Cmd.none )

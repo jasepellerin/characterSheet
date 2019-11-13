@@ -1,5 +1,6 @@
 port module Main exposing (main)
 
+import Api.UrlBuilder exposing (UrlBuilder)
 import Browser
 import Browser.Navigation as Nav
 import Dict exposing (Dict)
@@ -11,6 +12,7 @@ import Pages.CharacterSelect as CharacterSelect
 import Pages.CharacterSheet as CharacterSheet
 import Route exposing (Route(..), fromUrl)
 import Url exposing (Url)
+import Url.Builder
 
 
 
@@ -29,6 +31,7 @@ type alias Model =
     , route : Route
     , player : Player
     , selectedCharacterId : String
+    , urlBuilder : UrlBuilder
     }
 
 
@@ -49,7 +52,16 @@ convertModel model converter =
 
 init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url navKey =
-    changeRoute (Route.fromUrl url) { navKey = navKey, route = Route.CharacterSelect, player = Player "" Dict.empty, selectedCharacterId = "" }
+    let
+        urlBuilder =
+            case url.host == "localhost" of
+                True ->
+                    Url.Builder.crossOrigin "http://localhost:8888"
+
+                False ->
+                    Url.Builder.absolute
+    in
+    changeRoute (Route.fromUrl url) { navKey = navKey, route = Route.CharacterSelect, player = Player "" Dict.empty, selectedCharacterId = "", urlBuilder = urlBuilder }
 
 
 subscriptions : Model -> Sub Msg
@@ -62,17 +74,17 @@ subscriptions model =
 
 
 view : Model -> Browser.Document Msg
-view { route, player, selectedCharacterId } =
+view model =
     let
         makePage toMsg { content, title } =
             Browser.Document title (List.map (Html.map toMsg) [ content ])
     in
-    case route of
+    case model.route of
         CharacterSelect ->
-            makePage GotCharacterSelectMsg (CharacterSelect.view { player = player, selectedCharacterId = selectedCharacterId })
+            makePage GotCharacterSelectMsg (CharacterSelect.view model)
 
         CharacterSheet slug ->
-            makePage GotCharacterSheetMsg (CharacterSheet.view { player = player, selectedCharacterId = slug })
+            makePage GotCharacterSheetMsg (CharacterSheet.view model)
 
 
 
