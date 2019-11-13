@@ -14,9 +14,10 @@ import Modules.Player exposing (Player)
 -- MODEL
 
 
-type alias Model =
-    { selectedCharacterId : String
-    , player : Player
+type alias Model a =
+    { a
+        | selectedCharacterId : String
+        , player : Player
     }
 
 
@@ -30,7 +31,7 @@ modelInit =
 -- VIEW
 
 
-view : Model -> { content : Html Msg, title : String }
+view : Model a -> { content : Html Msg, title : String }
 view { selectedCharacterId, player } =
     { content =
         case Dict.member selectedCharacterId player.characters of
@@ -67,4 +68,4 @@ update msg model =
             ( model, getChar )
 
         GotText result ->
-            (model, Cmd.none )
+            ( model, Cmd.none )

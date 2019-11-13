@@ -16,9 +16,10 @@ import Url exposing (Url)
 -- MODEL
 
 
-type alias Model =
-    { player : Player
-    , selectedCharacterId : String
+type alias Model a =
+    { a
+        | player : Player
+        , selectedCharacterId : String
     }
 
 
@@ -26,7 +27,7 @@ type alias Model =
 -- VIEW
 
 
-view : Model -> { content : Html Msg, title : String }
+view : Model a -> { content : Html Msg, title : String }
 view model =
     { content = div [] [ div [] [ text model.selectedCharacterId ], div [ onClick HandleClick ] [ text "Click" ] ]
     , title = "Hello"

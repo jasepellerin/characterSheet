@@ -33,8 +33,8 @@ type alias Model =
 
 
 type ModelConverter
-    = CharacterSelectConverter CharacterSelect.Model
-    | CharacterSheetConverter CharacterSheet.Model
+    = CharacterSelectConverter (CharacterSelect.Model Model)
+    | CharacterSheetConverter (CharacterSheet.Model Model)
 
 
 convertModel : Model -> ModelConverter -> Model
@@ -102,11 +102,11 @@ update msg model =
                     ( model, Nav.load url )
 
         GotCharacterSelectMsg msg_ ->
-            CharacterSelect.update msg_ { player = model.player, selectedCharacterId = model.selectedCharacterId }
+            CharacterSelect.update msg_ model
                 |> updateWith CharacterSelectConverter GotCharacterSelectMsg model
 
         GotCharacterSheetMsg msg_ ->
-            CharacterSheet.update msg_ { player = model.player, selectedCharacterId = model.selectedCharacterId }
+            CharacterSheet.update msg_ model
                 |> updateWith CharacterSheetConverter GotCharacterSheetMsg model
 
         NoOp ->
