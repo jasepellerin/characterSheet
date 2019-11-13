@@ -22,6 +22,9 @@ import Url.Builder
 port log : Encode.Value -> Cmd msg
 
 
+port setLocalCharacterData : Encode.Value -> Cmd msg
+
+
 
 -- MODEL
 
@@ -50,8 +53,8 @@ convertModel model converter =
             model
 
 
-init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init flags url navKey =
+init : { currentPlayerId : String } -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init { currentPlayerId } url navKey =
     let
         urlBuilder =
             case url.host == "localhost" of
@@ -61,7 +64,7 @@ init flags url navKey =
                 False ->
                     Url.Builder.absolute
     in
-    changeRoute (Route.fromUrl url) { navKey = navKey, route = Route.CharacterSelect, player = Player "" Dict.empty, selectedCharacterId = "", urlBuilder = urlBuilder }
+    changeRoute (Route.fromUrl url) { navKey = navKey, route = Route.CharacterSelect, player = Player currentPlayerId Dict.empty, selectedCharacterId = "", urlBuilder = urlBuilder }
 
 
 subscriptions : Model -> Sub Msg
@@ -149,7 +152,7 @@ updateWith toModel toMsg model ( subModel, subCmd ) =
 -- MAIN
 
 
-main : Program () Model Msg
+main : Program { currentPlayerId : String } Model Msg
 main =
     Browser.application
         { init = init

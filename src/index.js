@@ -1,82 +1,42 @@
 import netlifyIdentity from 'netlify-identity-widget'
 import { Elm } from './elm/Main'
-import api from './utils/api'
-import getId from './utils/getId'
 import './styles/main.scss'
 import logger from './utils/logger'
 
 netlifyIdentity.init()
 const user = netlifyIdentity.currentUser()
-const id = getId(location.pathname)
-const storageKey = `characterData:${id}`
-const localStorageCharacterData = JSON.parse(localStorage.getItem(storageKey))
 
-const initializeElm = flags => {
-    // const elmApp = Elm.Main.init({ flags })
-    const elmApp = Elm.Main.init()
+const initializeElm = (flags, localStorageKey) => {
+    const elmApp = Elm.Main.init({ flags })
     elmApp.ports.log.subscribe(data => {
         logger('Logging from Elm', data)
     })
-    // elmApp.ports.setLocalCharacterData.subscribe(data => {
-    //     logger('Setting data in local storage', data)
-    //     localStorage.setItem(storageKey, JSON.stringify(data))
-    // })
-    // elmApp.ports.setDbCharacterData.subscribe(data => {
-    //     logger('Setting data in db', data)
-    //     api.updateCharacterById(id, data).then(response => {
-    //         logger('response', response)
-    //         if (response && response.data) {
-    //             elmApp.ports.updateDbData.send(response.data)
-    //         }
-    //     })
-    // })
-    // elmApp.ports.createCharacter.subscribe(data => {
-    //     logger('Creating new character', data)
-    //     api.createCharacter(data).then(response => {
-    //         logger('response', response)
-    //         if (response && response.ref) {
-    //             logger(response.ref)
-    //             // For dramatic effect
-    //             setTimeout(() => {
-    //                 location.href = `${location.protocol}//${location.host}/${response.ref['@ref'].id}`
-    //             }, 5000)
-    //         }
-    //     })
-    // })
+    elmApp.ports.setLocalCharacterData.subscribe(data => {
+        logger('Setting data in local storage', data)
+        localStorage.setItem(localStorageKey, JSON.stringify(data))
+    })
 }
 
 const handleSuccessfulLogin = () => {
-    const currentUser = user || netlifyIdentity.currentUser()
-    const elmFlags = {
-        currentPlayerId: currentUser ? currentUser.id : ''
+    const currentUser = netlifyIdentity.currentUser()
+    if (!currentUser || !currentUser.id) {
+        netlifyIdentity.open()
+        return
     }
-    // if (id) {
-    //     api.getCharacterById(id).then(response => {
-    //         logger(response)
-    //         if (response.data) {
-    //             // Found in db
-    //             const initialData = localStorageCharacterData || response.data
-    initializeElm({
-        ...elmFlags
-        // dbData: response.data,
-        // characterData: initialData
-    })
-    //         } else {
-    //             // Could not find in db, create a new sheet
-    //             initializeElm({
-    //                 ...elmFlags,
-    //                 needsCreation: true
-    //             })
-    //         }
-    //     })
-    // } else {
-    //     // No sheet id found, create a new sheet
-    //     // TODO: Show existing sheets for this user and New Sheet button
-    //     initializeElm({
-    //         ...elmFlags,
-    //         needsCreation: true
-    //     })
-    // }
+
+    const currentPlayerId = currentUser.id
+    const localStorageKey = `playerData:${currentPlayerId}`
+    const localStorageData = JSON.parse(localStorage.getItem(localStorageKey))
+    const elmFlags = {
+        currentPlayerId,
+        localData: localStorageData
+    }
+    initializeElm(
+        {
+            ...elmFlags
+        },
+        localStorageKey
+    )
 }
 
 if (user === null) {
