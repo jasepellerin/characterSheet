@@ -1,8 +1,12 @@
 module Pages.CharacterSheet exposing (Model, Msg, update, view)
 
+import Api.Endpoint as Endpoint
+import Api.Main as Api
 import Browser
 import Dict exposing (Dict)
 import Html exposing (Html, div, text)
+import Http
+import Json.Decode as Decode
 import Modules.Player exposing (Player)
 
 
@@ -11,13 +15,13 @@ import Modules.Player exposing (Player)
 
 
 type alias Model =
-    { characterId : String
+    { selectedCharacterId : String
     , player : Player
     }
 
 
 modelInit =
-    { characterId = ""
+    { selectedCharacterId = ""
     , player = Player "" Dict.empty
     }
 
@@ -27,11 +31,11 @@ modelInit =
 
 
 view : Model -> { content : Html Msg, title : String }
-view { characterId, player } =
+view { selectedCharacterId, player } =
     { content =
-        case Dict.member characterId player.characters of
+        case Dict.member selectedCharacterId player.characters of
             True ->
-                div [] [ text characterId ]
+                div [] [ text selectedCharacterId ]
 
             False ->
                 div [] [ text "No character with this ID was found" ]
@@ -43,11 +47,24 @@ view { characterId, player } =
 -- UPDATE
 
 
+getChar : Cmd Msg
+getChar =
+    Api.get (Endpoint.getCharacter "247935186137776658") GotText (Decode.at [ "data", "armorType" ] Decode.string)
+
+
 type Msg
-    = NoOp
+    = GotText (Result Http.Error String)
+    | HandleClick
+    | NoOp
 
 
 update msg model =
     case msg of
         NoOp ->
             ( model, Cmd.none )
+
+        HandleClick ->
+            ( model, getChar )
+
+        GotText result ->
+            (model, Cmd.none )

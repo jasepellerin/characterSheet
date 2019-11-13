@@ -28,7 +28,7 @@ type alias Model =
     { navKey : Nav.Key
     , route : Route
     , player : Player
-    , test : String
+    , selectedCharacterId : String
     }
 
 
@@ -41,7 +41,7 @@ convertModel : Model -> ModelConverter -> Model
 convertModel model converter =
     case converter of
         CharacterSelectConverter subModel ->
-            { model | test = subModel.test }
+            { model | selectedCharacterId = subModel.selectedCharacterId }
 
         CharacterSheetConverter subModel ->
             model
@@ -49,7 +49,7 @@ convertModel model converter =
 
 init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url navKey =
-    changeRoute (Route.fromUrl url) { navKey = navKey, route = Route.CharacterSelect, player = Player "" Dict.empty, test = "" }
+    changeRoute (Route.fromUrl url) { navKey = navKey, route = Route.CharacterSelect, player = Player "" Dict.empty, selectedCharacterId = "" }
 
 
 subscriptions : Model -> Sub Msg
@@ -62,17 +62,17 @@ subscriptions model =
 
 
 view : Model -> Browser.Document Msg
-view { route, player, test } =
+view { route, player, selectedCharacterId } =
     let
         makePage toMsg { content, title } =
             Browser.Document title (List.map (Html.map toMsg) [ content ])
     in
     case route of
         CharacterSelect ->
-            makePage GotCharacterSelectMsg (CharacterSelect.view { player = player, test = test })
+            makePage GotCharacterSelectMsg (CharacterSelect.view { player = player, selectedCharacterId = selectedCharacterId })
 
         CharacterSheet slug ->
-            makePage GotCharacterSheetMsg (CharacterSheet.view { player = player, characterId = slug })
+            makePage GotCharacterSheetMsg (CharacterSheet.view { player = player, selectedCharacterId = slug })
 
 
 
@@ -102,11 +102,11 @@ update msg model =
                     ( model, Nav.load url )
 
         GotCharacterSelectMsg msg_ ->
-            CharacterSelect.update msg_ { player = model.player, test = model.test }
+            CharacterSelect.update msg_ { player = model.player, selectedCharacterId = model.selectedCharacterId }
                 |> updateWith CharacterSelectConverter GotCharacterSelectMsg model
 
         GotCharacterSheetMsg msg_ ->
-            CharacterSheet.update msg_ { player = model.player, characterId = "" }
+            CharacterSheet.update msg_ { player = model.player, selectedCharacterId = model.selectedCharacterId }
                 |> updateWith CharacterSheetConverter GotCharacterSheetMsg model
 
         NoOp ->

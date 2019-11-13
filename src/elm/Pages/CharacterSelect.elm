@@ -18,13 +18,7 @@ import Url exposing (Url)
 
 type alias Model =
     { player : Player
-    , test : String
-    }
-
-
-modelInit =
-    { player = Player "" Dict.empty
-    , test = ""
+    , selectedCharacterId : String
     }
 
 
@@ -34,7 +28,7 @@ modelInit =
 
 view : Model -> { content : Html Msg, title : String }
 view model =
-    { content = div [] [ div [] [ text model.test ], div [ onClick HandleClick ] [ text "Click" ] ]
+    { content = div [] [ div [] [ text model.selectedCharacterId ], div [ onClick HandleClick ] [ text "Click" ] ]
     , title = "Hello"
     }
 
@@ -63,9 +57,4 @@ update msg model =
             ( model, getChar )
 
         GotText result ->
-            case result of
-                Ok response ->
-                    ( { model | test = response }, Cmd.none )
-
-                Err error ->
-                    ( { model | test = "Error" }, Cmd.none )
+            ( model, Cmd.none )
