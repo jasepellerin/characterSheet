@@ -103,11 +103,11 @@ update msg model =
 
         GotCharacterSelectMsg msg_ ->
             CharacterSelect.update msg_ { player = model.player, test = model.test }
-                |> (\( subModel, subCmd ) -> updateWith (CharacterSelectConverter subModel) GotCharacterSelectMsg model subCmd)
+                |> updateWith CharacterSelectConverter GotCharacterSelectMsg model
 
         GotCharacterSheetMsg msg_ ->
             CharacterSheet.update msg_ { player = model.player, characterId = "" }
-                |> (\( subModel, subCmd ) -> updateWith (CharacterSheetConverter subModel) GotCharacterSheetMsg model subCmd)
+                |> updateWith CharacterSheetConverter GotCharacterSheetMsg model
 
         NoOp ->
             ( model, Cmd.none )
@@ -126,9 +126,9 @@ changeRoute maybeRoute model =
             ( { model | route = Route.CharacterSheet slug }, log (Encode.string "CharacterSheet") )
 
 
-updateWith : ModelConverter -> (subMsg -> Msg) -> Model -> Cmd subMsg -> ( Model, Cmd Msg )
-updateWith toModel toMsg model subCmd =
-    ( convertModel model toModel
+updateWith : (subModel -> ModelConverter) -> (subMsg -> Msg) -> Model -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )
+updateWith toModel toMsg model ( subModel, subCmd ) =
+    ( convertModel model (toModel subModel)
     , Cmd.map toMsg subCmd
     )
 
