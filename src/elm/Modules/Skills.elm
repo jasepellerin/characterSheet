@@ -1,6 +1,7 @@
-module Modules.Skills exposing (CharacterSkills, Skill, combatSkills, nonCombatSkills)
+module Modules.Skills exposing (CharacterSkills, Skill, characterSkillsDecoder, combatSkills, nonCombatSkills)
 
 import Dict exposing (Dict)
+import Json.Decode as Decode
 
 
 type alias Skill =
@@ -32,3 +33,8 @@ nonCombatSkills =
     , { name = "speech", attribute = "charisma" }
     , { name = "survival", attribute = "endurance" }
     ]
+
+
+characterSkillsDecoder : Decode.Decoder (Dict String Bool)
+characterSkillsDecoder =
+    Decode.dict Decode.bool

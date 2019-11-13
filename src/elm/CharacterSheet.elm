@@ -11,10 +11,10 @@ import Json.Decode as Decode exposing (at, bool, decodeString, field, int, strin
 import Json.Decode.Pipeline exposing (custom, hardcoded, optional, requiredAt)
 import Json.Encode as Encode
 import List.Extra exposing (find)
-import Modules.CharacterData exposing (CharacterData)
 import Modules.Skills exposing (Skill, combatSkills, nonCombatSkills)
 import Modules.SpecialAttribute exposing (SpecialAttribute, SpecialAttributeMsg(..), getSpecialAttribute, specialAttributeNames)
 import Task
+import Types.CharacterData exposing (CharacterData)
 
 
 port setLocalCharacterData : Encode.Value -> Cmd msg

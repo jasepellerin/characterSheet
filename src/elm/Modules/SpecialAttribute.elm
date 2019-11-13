@@ -1,7 +1,7 @@
-module Modules.SpecialAttribute exposing (SpecialAttribute, SpecialAttributeMsg(..), getSpecialAttribute, specialAttributeNames)
+module Modules.SpecialAttribute exposing (SpecialAttribute, SpecialAttributeMsg(..), getAttributeValueFromNameWithDefault, getSpecialAttribute, specialAttributeNames)
 
 import Dict exposing (Dict)
-import Modules.CharacterData exposing (CharacterData)
+import Types.CharacterData exposing (CharacterData)
 
 
 type SpecialAttributeMsg
@@ -50,3 +50,8 @@ specialAttributes =
 getSpecialAttribute : String -> Maybe SpecialAttribute
 getSpecialAttribute string =
     Dict.get string specialAttributes
+
+
+getAttributeValueFromNameWithDefault : Int -> CharacterData -> String -> Int
+getAttributeValueFromNameWithDefault default characterData attributeName =
+    Maybe.withDefault default (Maybe.map (\attribute -> .accessor attribute characterData) (getSpecialAttribute attributeName))

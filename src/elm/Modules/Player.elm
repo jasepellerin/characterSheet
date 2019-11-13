@@ -1,6 +1,6 @@
 module Modules.Player exposing (Player)
 
-import Modules.CharacterData exposing (CharacterData)
+import Types.CharacterData exposing (CharacterData)
 import Dict exposing (Dict)
 
 
