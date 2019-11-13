@@ -43,8 +43,7 @@ unwrap (Endpoint urlString) =
 
 url : List String -> Endpoint
 url paths =
-    Url.Builder.crossOrigin
-        "http://localhost:8888"
+    Url.Builder.absolute
         (List.append [ ".netlify", "functions" ] paths)
         []
         |> Endpoint
