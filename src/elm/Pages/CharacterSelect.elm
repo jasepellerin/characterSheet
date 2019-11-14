@@ -5,12 +5,14 @@ import Api.Main as Api
 import Api.UrlBuilder exposing (UrlBuilder)
 import Browser
 import Dict exposing (Dict)
-import Html exposing (Html, div, text)
+import Html exposing (Html, a, div, h1, text)
+import Html.Attributes exposing (href)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Decode
 import Modules.Player exposing (Player)
 import Url exposing (Url)
+import Route exposing (Route(..))
 
 
 
@@ -30,8 +32,9 @@ type alias Model a =
 
 
 view : Model a -> { content : Html Msg, title : String }
-view { selectedCharacterId, urlBuilder } =
-    { content = div [] [ div [] [ text selectedCharacterId ], div [ onClick (HandleClick urlBuilder) ] [ text "Click" ] ]
+view { player } =
+    { content = div [] [h1 [] [ text "Your characters" ]
+    , div [] (Dict.values (Dict.map (\characterId -> \character ->  a [ href (Route.toHref (CharacterSheet characterId)) ] [ text character.name ] ) player.characters))]
     , title = "Hello"
     }
 
@@ -40,9 +43,9 @@ view { selectedCharacterId, urlBuilder } =
 -- UPDATE
 
 
-getChar : UrlBuilder -> Cmd Msg
-getChar urlBuilder =
-    Api.get (Endpoint.getCharacter urlBuilder "247935186137776658") GotText (Decode.at [ "data", "armorType" ] Decode.string)
+getChar : Model a -> Cmd Msg
+getChar {player, selectedCharacterId, urlBuilder} =
+    Api.get (Endpoint.getCharacter urlBuilder selectedCharacterId) GotText (Decode.at [ "data", "armorType" ] Decode.string)
 
 
 type Msg
@@ -57,7 +60,7 @@ update msg model =
             ( model, Cmd.none )
 
         HandleClick urlBuilder ->
-            ( model, getChar urlBuilder )
+            ( model, getChar model )
 
         GotText result ->
             ( model, Cmd.none )
