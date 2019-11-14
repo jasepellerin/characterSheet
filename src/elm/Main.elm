@@ -1,4 +1,4 @@
-port module Main exposing (main)
+module Main exposing (main)
 
 import Api.UrlBuilder exposing (UrlBuilder)
 import Browser
@@ -12,14 +12,7 @@ import Pages.CharacterSheet as CharacterSheet
 import Route exposing (Route(..), fromUrl)
 import Url exposing (Url)
 import Url.Builder
-
-
-
--- PORTS
-
-
-port log : Encode.Value -> Cmd msg
-
+import Ports exposing (log)
 
 
 -- MODEL
@@ -43,7 +36,7 @@ convertModel : Model -> ModelConverter -> Model
 convertModel model converter =
     case converter of
         CharacterSelectConverter subModel ->
-            { model | selectedCharacterId = subModel.selectedCharacterId }
+            { model | selectedCharacterId = subModel.selectedCharacterId, player = subModel.player }
 
         CharacterSheetConverter subModel ->
             model
