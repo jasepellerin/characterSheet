@@ -1,4 +1,4 @@
-module Pages.CharacterSheet exposing (Model, Msg, update, view)
+port module Pages.CharacterSheet exposing (Model, Msg, update, view)
 
 import Api.Endpoint as Endpoint
 import Api.Main as Api
@@ -9,16 +9,21 @@ import Html exposing (Html, div, text)
 import Http
 import Json.Decode as Decode
 import Modules.Player exposing (Player)
+import Json.Encode as Encode
+import Types.CharacterData exposing (CharacterData)
+import Modules.CharacterData exposing (characterDataEncoder)
 
 
+
+port setLocalData : Encode.Value -> Cmd msg
 
 -- MODEL
 
 
 type alias Model a =
     { a
-        | selectedCharacterId : String
-        , player : Player
+        | player : Player
+        , selectedCharacterId : String
         , urlBuilder : UrlBuilder
     }
 
@@ -44,14 +49,14 @@ view { selectedCharacterId, player } =
 -- UPDATE
 
 
-getChar : UrlBuilder -> Cmd Msg
-getChar urlBuilder =
-    Api.get (Endpoint.getCharacter urlBuilder "247935186137776658") GotText (Decode.at [ "data", "armorType" ] Decode.string)
+getChar : {selectedCharacterId: String, urlBuilder: UrlBuilder} -> Cmd Msg
+getChar {selectedCharacterId, urlBuilder} =
+    Api.get (Endpoint.getCharacter urlBuilder selectedCharacterId) GotText (Decode.at [ "data", "armorType" ] Decode.string)
 
 
 type Msg
     = GotText (Result Http.Error String)
-    | HandleClick UrlBuilder
+    | HandleChange CharacterData
     | NoOp
 
 
@@ -60,8 +65,13 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
-        HandleClick urlBuilder ->
-            ( model, getChar urlBuilder )
+        HandleChange newData ->
+            let
+                updatedCharacters = Dict.insert model.selectedCharacterId newData model.player.characters
+                player = model.player
+            in
+            
+            ({model | player = {player | characters = updatedCharacters}}, setLocalData (Encode.dict identity characterDataEncoder updatedCharacters))
 
         GotText result ->
             ( model, Cmd.none )

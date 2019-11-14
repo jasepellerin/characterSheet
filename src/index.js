@@ -11,7 +11,7 @@ const initializeElm = (flags, localStorageKey) => {
     elmApp.ports.log.subscribe(data => {
         logger('Logging from Elm', data)
     })
-    elmApp.ports.setLocalCharacterData.subscribe(data => {
+    elmApp.ports.setLocalData.subscribe(data => {
         logger('Setting data in local storage', data)
         localStorage.setItem(localStorageKey, JSON.stringify(data))
     })

@@ -4,8 +4,7 @@ import Api.UrlBuilder exposing (UrlBuilder)
 import Browser
 import Browser.Navigation as Nav
 import Dict exposing (Dict)
-import Html exposing (a, text)
-import Html.Attributes exposing (href)
+import Html
 import Json.Encode as Encode
 import Modules.Player exposing (Player)
 import Pages.CharacterSelect as CharacterSelect
@@ -22,9 +21,6 @@ import Url.Builder
 port log : Encode.Value -> Cmd msg
 
 
-port setLocalCharacterData : Encode.Value -> Cmd msg
-
-
 
 -- MODEL
 
@@ -39,8 +35,8 @@ type alias Model =
 
 
 type ModelConverter
-    = CharacterSelectConverter (CharacterSelect.Model Model)
-    | CharacterSheetConverter (CharacterSheet.Model Model)
+    = CharacterSelectConverter (CharacterSelect.Model {route : Route, navKey: Nav.Key})
+    | CharacterSheetConverter (CharacterSheet.Model {route : Route, navKey: Nav.Key})
 
 
 convertModel : Model -> ModelConverter -> Model
