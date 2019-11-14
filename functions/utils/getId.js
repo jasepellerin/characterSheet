@@ -1,4 +1,4 @@
-module.exports = function getId(urlPath) {
+module.exports = function getId({ queryStringParameters, path }) {
     // eslint-disable-next-line no-useless-escape
-    return urlPath.match(/([^\/]*)\/*$/)[0]
+    return queryStringParameters.id || path.match(/([^\/]*)\/*$/)[0]
 }
