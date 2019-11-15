@@ -20,6 +20,7 @@ import Modules.Player exposing (Player)
 import Ports exposing (log)
 import Route exposing (Route(..))
 import Types.CharacterData exposing (CharacterData)
+import Utils.CapitalizeFirstLetter exposing (capitalizeFirstLetter)
 
 
 port setLocalData : Encode.Value -> Cmd msg
@@ -61,14 +62,17 @@ view model =
                                 [ text "gear" ]
 
                             Info ->
-                                [ derivedStatisticsView characterData ]
+                                [ text "info" ]
 
                             Skills ->
                                 [ text "skills" ]
+
+                            Statistics ->
+                                [ derivedStatisticsView characterData ]
                 in
                 List.append
                     [ headerView characterData
-                    , tabView selectedCharacterId
+                    , tabView selectedCharacterId model.selectedTab
                     ]
                     tabContents
 
@@ -87,13 +91,15 @@ headerView characterData =
     characterHeader NoOp NoOp characterData
 
 
-tabView : String -> Html Msg
-tabView selectedCharacterId =
+tabView : String -> String -> Html Msg
+tabView selectedCharacterId selectedTab =
     div []
-        [ a [ href (Route.toHref (CharacterSheet selectedCharacterId (Just "skills"))) ] [ text "Skills" ]
-        , a [ href (Route.toHref (CharacterSheet selectedCharacterId (Just "info"))) ] [ text "Info" ]
-        , a [ href (Route.toHref (CharacterSheet selectedCharacterId (Just "gear"))) ] [ text "Gear" ]
-        ]
+        (Dict.values
+            (Dict.map
+                (\tabName -> \_ -> a [ classList [ ( "active", selectedTab == tabName ) ], href (Route.toHref (CharacterSheet selectedCharacterId (Just tabName))) ] [ text (capitalizeFirstLetter tabName) ])
+                tabNames
+            )
+        )
 
 
 derivedStatisticsView : CharacterData -> Html Msg
@@ -118,22 +124,26 @@ type Tab
     = Gear
     | Info
     | Skills
+    | Statistics
+
+
+tabNames =
+    Dict.fromList
+        [ ( "gear", Gear )
+        , ( "info", Info )
+        , ( "skills", Skills )
+        , ( "statistics", Statistics )
+        ]
 
 
 getTabFromName : String -> Tab
 getTabFromName tabName =
-    case String.toLower tabName of
-        "gear" ->
-            Gear
+    case Dict.get tabName tabNames of
+        Just tab ->
+            tab
 
-        "info" ->
-            Info
-
-        "skills" ->
-            Skills
-
-        _ ->
-            Info
+        Nothing ->
+            Statistics
 
 
 
