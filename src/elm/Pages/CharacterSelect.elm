@@ -37,7 +37,7 @@ type alias Model a =
 
 view : Model a -> { content : Html Msg, title : String }
 view { player } =
-    { content = div [] [h1 [] [ text "Your characters" ] , button [onClick HandleUpdate] [text "update"]
+    { content = div [] [h1 [] [ text "Your characters" ] , button [onClick GetCharacters] [text "update"]
     , div [] (Dict.values (Dict.map (\characterId -> \character ->  a [ href (Route.toHref (CharacterSheet characterId)) ] [ text character.name ] ) player.characters))]
     , title = "Hello"
     }
@@ -54,7 +54,7 @@ getCharactersForPlayer {player, selectedCharacterId, urlBuilder} =
 
 type Msg
     = NoOp
-    | HandleUpdate
+    | GetCharacters
     | GotText (Result Http.Error (Dict String CharacterData))
 
 
@@ -63,7 +63,7 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
-        HandleUpdate ->
+        GetCharacters ->
             ( model, getCharactersForPlayer model )
 
         GotText result ->
