@@ -1,22 +1,19 @@
 module Pages.CharacterSelect exposing (Model, Msg, update, view)
 
-import Api.Endpoint as Endpoint
-import Api.Main as Api
-import Api.UrlBuilder exposing (UrlBuilder)
 import Browser
 import Dict exposing (Dict)
 import Html exposing (Html, a, div, h1, button, text)
 import Html.Attributes exposing (href)
 import Html.Events exposing (onClick)
-import Http
-import Json.Decode as Decode
-import Modules.Player exposing (Player)
+import Modules.Player exposing (Player, getCharactersForPlayer)
 import Url exposing (Url)
 import Route exposing (Route(..))
-import Modules.CharacterData exposing (characterDataDecoder, characterDataEncoder)
+import Modules.CharacterData exposing (characterDataEncoder)
 import Ports exposing (log)
 import Json.Encode as Encode
 import Types.CharacterData exposing (CharacterData)
+import Api.UrlBuilder exposing (UrlBuilder)
+import Http
 
 
 
@@ -47,11 +44,6 @@ view { player } =
 -- UPDATE
 
 
-getCharactersForPlayer : Model a -> Cmd Msg
-getCharactersForPlayer {player, selectedCharacterId, urlBuilder} =
-    Api.get (Endpoint.getCharactersForPlayer urlBuilder player.id) GotText (Decode.field "data" characterListDecoder)
-
-
 type Msg
     = NoOp
     | GetCharacters
@@ -64,7 +56,7 @@ update msg model =
             ( model, Cmd.none )
 
         GetCharacters ->
-            ( model, getCharactersForPlayer model )
+            ( model, getCharactersForPlayer GotText model )
 
         GotText result ->
             let
@@ -81,8 +73,3 @@ update msg model =
                     
                         _ ->
                             ( model, log (Encode.string "Unknown Error") )
-
-
-characterListDecoder: Decode.Decoder (Dict String CharacterData)
-characterListDecoder =
-    Decode.map Dict.fromList (Decode.list (Decode.map2 (\key -> \value -> (key, value)) (Decode.at ["ref", "@ref", "id"] Decode.string) (characterDataDecoder "data")))
