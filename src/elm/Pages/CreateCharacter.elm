@@ -5,20 +5,21 @@ import Api.Main as Api exposing (createCharacter)
 import Api.UrlBuilder exposing (UrlBuilder)
 import Browser
 import Dict exposing (Dict)
-import Html exposing (Html, div, text, button)
+import Html exposing (Html, button, div, text)
+import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Decode
-import Modules.Player exposing (Player)
 import Json.Encode as Encode
-import Types.CharacterData exposing (CharacterData)
 import Modules.CharacterData exposing (characterDataEncoder)
-import Html.Events exposing (onClick)
+import Modules.Player exposing (Player)
 import Ports exposing (log)
 import Route exposing (Route(..), changeRoute)
-
+import Types.CharacterData exposing (CharacterData)
 
 
 port setLocalData : Encode.Value -> Cmd msg
+
+
 
 -- MODEL
 
@@ -50,33 +51,34 @@ view { player } =
 
 type Msg
     = CreateCharacter
-    | GotCharacter (Result Http.Error (String, CharacterData))
+    | GotCharacter (Result Http.Error ( String, CharacterData ))
     | NoOp
 
 
-update: Msg -> Model a -> (Model a, Cmd Msg)
+update : Msg -> Model a -> ( Model a, Cmd Msg )
 update msg model =
     case msg of
         CreateCharacter ->
-            (model, createCharacter GotCharacter model)
+            ( model, createCharacter GotCharacter model )
 
-        GotCharacter (result) ->
+        GotCharacter result ->
             let
-                player = model.player
+                player =
+                    model.player
             in
             case result of
-                Ok (selectedCharacterId, characterData) ->
+                Ok ( selectedCharacterId, characterData ) ->
                     let
-                        updatedCharacters = Dict.insert model.selectedCharacterId characterData player.characters
+                        updatedCharacters =
+                            Dict.insert model.selectedCharacterId characterData player.characters
                     in
-                    
-                    ( {model | player = {player | characters = updatedCharacters}}, log (Encode.dict identity characterDataEncoder updatedCharacters))
-                            
+                    ( { model | player = { player | characters = updatedCharacters } }, log (Encode.dict identity characterDataEncoder updatedCharacters) )
+
                 Err error ->
                     case error of
                         Http.BadBody errorMsg ->
-                            ( model, log (Encode.string errorMsg))
-                    
+                            ( model, log (Encode.string errorMsg) )
+
                         _ ->
                             ( model, log (Encode.string "Unknown Error") )
 

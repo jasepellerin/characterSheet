@@ -1,9 +1,9 @@
-module Route exposing (Route(..), fromUrl, toHref, changeRoute)
+module Route exposing (Route(..), changeRoute, fromUrl, toHref)
 
+import Json.Encode as Encode
+import Ports exposing (log)
 import Url exposing (Url)
 import Url.Parser as Parser exposing ((</>), Parser, oneOf, s, string)
-import Ports exposing (log)
-import Json.Encode as Encode
 
 
 type Route
@@ -57,7 +57,7 @@ routeToString page =
     "#/" ++ String.join "/" pieces
 
 
-changeRoute : Maybe Route -> {a | route: Route, selectedCharacterId : String} -> ( {a | route: Route, selectedCharacterId : String}, Cmd msg )
+changeRoute : Maybe Route -> { a | route : Route, selectedCharacterId : String } -> ( { a | route : Route, selectedCharacterId : String }, Cmd msg )
 changeRoute maybeRoute model =
     case maybeRoute of
         Nothing ->

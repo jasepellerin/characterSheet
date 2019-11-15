@@ -5,19 +5,20 @@ import Api.Main as Api
 import Api.UrlBuilder exposing (UrlBuilder)
 import Browser
 import Dict exposing (Dict)
-import Html exposing (Html, div, text, button)
+import Html exposing (Html, button, div, text)
+import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Decode
-import Modules.Player exposing (Player)
 import Json.Encode as Encode
-import Types.CharacterData exposing (CharacterData)
 import Modules.CharacterData exposing (characterDataDecoder, characterDataEncoder)
-import Html.Events exposing (onClick)
+import Modules.Player exposing (Player)
 import Ports exposing (log)
-
+import Types.CharacterData exposing (CharacterData)
 
 
 port setLocalData : Encode.Value -> Cmd msg
+
+
 
 -- MODEL
 
@@ -42,7 +43,7 @@ view { selectedCharacterId, player } =
                 div [] [ text selectedCharacterId ]
 
             False ->
-                div [] [ text "No character with this ID was found", button [onClick GetCharacter] [text "Check again"] ]
+                div [] [ text "No character with this ID was found", button [ onClick GetCharacter ] [ text "Check again" ] ]
     , title = "Sheet"
     }
 
@@ -52,7 +53,7 @@ view { selectedCharacterId, player } =
 
 
 getCharacter : Model a -> Cmd Msg
-getCharacter {selectedCharacterId, urlBuilder} =
+getCharacter { selectedCharacterId, urlBuilder } =
     Api.get (Endpoint.getCharacter urlBuilder selectedCharacterId) GotCharacter (Decode.field "data" (characterDataDecoder ""))
 
 
@@ -63,38 +64,39 @@ type Msg
     | NoOp
 
 
-update: Msg -> Model a -> (Model a, Cmd Msg)
+update : Msg -> Model a -> ( Model a, Cmd Msg )
 update msg model =
     let
-        player = model.player
+        player =
+            model.player
     in
     case msg of
         GetCharacter ->
-            (model, getCharacter model)
+            ( model, getCharacter model )
 
         GotCharacter result ->
             case result of
                 Ok result_ ->
                     let
-                        updatedCharacters = Dict.insert model.selectedCharacterId result_ player.characters
+                        updatedCharacters =
+                            Dict.insert model.selectedCharacterId result_ player.characters
                     in
-                    
-                    ( {model | player = {player | characters = updatedCharacters}}, log (Encode.dict identity characterDataEncoder updatedCharacters))
-                            
+                    ( { model | player = { player | characters = updatedCharacters } }, log (Encode.dict identity characterDataEncoder updatedCharacters) )
+
                 Err error ->
                     case error of
                         Http.BadBody errorMsg ->
-                            ( model, log (Encode.string errorMsg))
-                    
+                            ( model, log (Encode.string errorMsg) )
+
                         _ ->
                             ( model, log (Encode.string "Unknown Error") )
 
         HandleChange newData ->
             let
-                updatedCharacters = Dict.insert model.selectedCharacterId newData model.player.characters
+                updatedCharacters =
+                    Dict.insert model.selectedCharacterId newData model.player.characters
             in
-            
-            ({model | player = {player | characters = updatedCharacters}}, setLocalData (Encode.dict identity characterDataEncoder updatedCharacters))
+            ( { model | player = { player | characters = updatedCharacters } }, setLocalData (Encode.dict identity characterDataEncoder updatedCharacters) )
 
         NoOp ->
             ( model, Cmd.none )

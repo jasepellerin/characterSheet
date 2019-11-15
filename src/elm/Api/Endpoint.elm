@@ -1,4 +1,4 @@
-module Api.Endpoint exposing (Endpoint, createCharacter, getCharactersForPlayer, getCharacter, request, updateCharacter)
+module Api.Endpoint exposing (Endpoint, createCharacter, getCharacter, getCharactersForPlayer, request, updateCharacter)
 
 import Api.UrlBuilder exposing (UrlBuilder)
 import Http
@@ -61,6 +61,7 @@ getCharacter urlBuilder slug =
 getCharactersForPlayer : UrlBuilder -> String -> Endpoint
 getCharactersForPlayer urlBuilder slug =
     url urlBuilder [ "getCharactersForPlayer", slug ]
+
 
 updateCharacter : UrlBuilder -> String -> Endpoint
 updateCharacter urlBuilder slug =

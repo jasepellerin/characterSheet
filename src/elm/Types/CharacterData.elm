@@ -1,7 +1,7 @@
 module Types.CharacterData exposing (CharacterData, defaultCharacterData)
 
-import Modules.Skills exposing (CharacterSkills)
 import Dict exposing (Dict)
+import Modules.Skills exposing (CharacterSkills)
 
 
 type alias CharacterData =
@@ -19,8 +19,9 @@ type alias CharacterData =
     , playerId : String
     }
 
-defaultCharacterData = {
-    name = "Unnamed Wanderer"
+
+defaultCharacterData =
+    { name = "Unnamed Wanderer"
     , level = 1
     , armorType = "no armor"
     , strength = 1
@@ -31,4 +32,5 @@ defaultCharacterData = {
     , agility = 1
     , luck = 1
     , skills = Dict.empty
-    , playerId = "" }
+    , playerId = ""
+    }

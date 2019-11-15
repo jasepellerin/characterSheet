@@ -1,4 +1,5 @@
 module Api.UrlBuilder exposing (UrlBuilder)
+
 import Url.Builder exposing (QueryParameter)
 
 
