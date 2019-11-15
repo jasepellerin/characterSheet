@@ -8,7 +8,7 @@ const client = new faunadb.Client({
 
 exports.handler = async event => {
     const data = JSON.parse(event.body)
-    console.log(`Function 'createCharacter' invoked.}`, data)
+    console.log(`Function 'createCharacter' invoked.`, data)
     return client
         .query(fQuery.Create(fQuery.Collection(`characters`), { data }))
         .then(response => {
