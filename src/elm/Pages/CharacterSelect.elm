@@ -31,19 +31,18 @@ type alias Model a =
 -- VIEW
 
 
-view : Model a -> { content : Html Msg, title : String }
+view : Model a -> { content : List (Html Msg), title : String }
 view { player } =
     { content =
-        div []
-            [ h1 [] [ text "Your characters" ]
-            , div []
-                (Dict.values
-                    (Dict.map
-                        (\characterId -> \character -> a [ href (Route.toHref (CharacterSheet characterId)) ] [ text character.name ])
-                        player.characters
-                    )
+        [ h1 [] [ text "Your characters" ]
+        , div []
+            (Dict.values
+                (Dict.map
+                    (\characterId -> \character -> a [ href (Route.toHref (CharacterSheet characterId)) ] [ text character.name ])
+                    player.characters
                 )
-            ]
+            )
+        ]
     , title = "Hello"
     }
 

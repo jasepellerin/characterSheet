@@ -4,7 +4,7 @@ import Api.UrlBuilder exposing (UrlBuilder)
 import Browser
 import Browser.Navigation as Nav
 import Dict exposing (Dict)
-import Html
+import Html exposing (Html)
 import Http
 import Json.Encode as Encode
 import Modules.CharacterData exposing (characterDataEncoder)
@@ -80,8 +80,9 @@ subscriptions model =
 view : Model -> Browser.Document Msg
 view model =
     let
+        makePage : (msg -> Msg) -> { content : List (Html msg), title : String } -> Browser.Document Msg
         makePage toMsg { content, title } =
-            Browser.Document title (List.map (Html.map toMsg) [ content ])
+            Browser.Document title (List.map (Html.map toMsg) content)
     in
     case model.route of
         CharacterSelect ->

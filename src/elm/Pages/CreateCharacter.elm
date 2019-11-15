@@ -37,10 +37,10 @@ type alias Model a =
 -- VIEW
 
 
-view : Model a -> { content : Html Msg, title : String }
+view : Model a -> { content : List (Html Msg), title : String }
 view { player } =
     { content =
-        div [] [ text "Creating Character" ]
+        [ text "Creating Character" ]
     , title = "New Character"
     }
 

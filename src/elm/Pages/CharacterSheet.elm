@@ -40,7 +40,7 @@ type alias Model a =
 -- VIEW
 
 
-view : Model a -> { content : Html Msg, title : String }
+view : Model a -> { content : List (Html Msg), title : String }
 view model =
     let
         { selectedCharacterId, player } =
@@ -49,13 +49,12 @@ view model =
     { content =
         case Dict.get selectedCharacterId player.characters of
             Just characterData ->
-                div []
-                    [ headerView characterData
-                    , derivedStatisticsView characterData
-                    ]
+                [ headerView characterData
+                , derivedStatisticsView characterData
+                ]
 
             Nothing ->
-                div [] [ text "No character with this ID was found", button [ onClick GetCharacter ] [ text "Check again" ] ]
+                [ text "No character with this ID was found", button [ onClick GetCharacter ] [ text "Check again" ] ]
     , title = "Sheet"
     }
 
