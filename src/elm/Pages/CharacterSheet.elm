@@ -38,28 +38,6 @@ type alias Model a =
     }
 
 
-type Tab
-    = Gear
-    | Info
-    | Skills
-
-
-getTabFromName : String -> Tab
-getTabFromName tabName =
-    case String.toLower tabName of
-        "gear" ->
-            Gear
-
-        "info" ->
-            Info
-
-        "skills" ->
-            Skills
-
-        _ ->
-            Info
-
-
 
 -- VIEW
 
@@ -100,6 +78,10 @@ view model =
     }
 
 
+
+-- SUBVIEWS
+
+
 headerView : CharacterData -> Html Msg
 headerView characterData =
     characterHeader NoOp NoOp characterData
@@ -129,12 +111,42 @@ derivedStatisticsView characterData =
 
 
 
--- UPDATE
+-- INTERNAL TYPES
+
+
+type Tab
+    = Gear
+    | Info
+    | Skills
+
+
+getTabFromName : String -> Tab
+getTabFromName tabName =
+    case String.toLower tabName of
+        "gear" ->
+            Gear
+
+        "info" ->
+            Info
+
+        "skills" ->
+            Skills
+
+        _ ->
+            Info
+
+
+
+-- API
 
 
 getCharacter : Model a -> Cmd Msg
 getCharacter { selectedCharacterId, urlBuilder } =
     Api.get (Endpoint.getCharacter urlBuilder selectedCharacterId) GotCharacter (Decode.field "data" (characterDataDecoder ""))
+
+
+
+-- UPDATE
 
 
 type Msg
