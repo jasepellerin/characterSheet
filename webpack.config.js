@@ -127,6 +127,7 @@ if (MODE === 'development') {
             ]
         },
         devServer: {
+            historyApiFallback: true,
             inline: true,
             stats: 'errors-only',
             contentBase: path.join(__dirname, 'src/assets'),
