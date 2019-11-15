@@ -6,13 +6,16 @@ import Browser.Navigation as Nav
 import Dict exposing (Dict)
 import Html
 import Json.Encode as Encode
-import Modules.Player exposing (Player)
+import Modules.Player exposing (Player, getCharactersForPlayer)
 import Pages.CharacterSelect as CharacterSelect
 import Pages.CharacterSheet as CharacterSheet
 import Route exposing (Route(..), fromUrl)
 import Url exposing (Url)
 import Url.Builder
 import Ports exposing (log)
+import Types.CharacterData exposing (CharacterData)
+import Http
+import Modules.CharacterData exposing (characterDataEncoder)
 
 
 -- MODEL
@@ -52,8 +55,10 @@ init { currentPlayerId } url navKey =
 
                 False ->
                     Url.Builder.absolute
+
+        initialModel = { navKey = navKey, route = Route.CharacterSelect, player = Player currentPlayerId Dict.empty, selectedCharacterId = "", urlBuilder = urlBuilder }
     in
-    changeRoute (Route.fromUrl url) { navKey = navKey, route = Route.CharacterSelect, player = Player currentPlayerId Dict.empty, selectedCharacterId = "", urlBuilder = urlBuilder }
+    (initialModel, getCharactersForPlayer (Initialized url) initialModel)
 
 
 subscriptions : Model -> Sub Msg
@@ -88,6 +93,7 @@ type Msg
     | ClickedLink Browser.UrlRequest
     | GotCharacterSelectMsg CharacterSelect.Msg
     | GotCharacterSheetMsg CharacterSheet.Msg
+    | Initialized Url (Result Http.Error (Dict String CharacterData))
     | NoOp
 
 
@@ -112,6 +118,22 @@ update msg model =
         GotCharacterSheetMsg msg_ ->
             CharacterSheet.update msg_ model
                 |> updateWith CharacterSheetConverter GotCharacterSheetMsg model
+
+        Initialized url result ->
+            let
+                player = model.player
+            in
+            case result of
+                Ok result_ ->
+                    changeRoute (Route.fromUrl url) {model | player = {player | characters = result_}}
+                            
+                Err error ->
+                    case error of
+                        Http.BadBody errorMsg ->
+                            ( model, log (Encode.string errorMsg))
+                    
+                        _ ->
+                            ( model, log (Encode.string "Unknown Error") )
 
         NoOp ->
             ( model, Cmd.none )
