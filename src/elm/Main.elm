@@ -39,7 +39,7 @@ convertModel model converter =
             { model | selectedCharacterId = subModel.selectedCharacterId, player = subModel.player }
 
         CharacterSheetConverter subModel ->
-            model
+            {model | player = subModel.player}
 
 
 init : { currentPlayerId : String } -> Url -> Nav.Key -> ( Model, Cmd Msg )
@@ -127,7 +127,7 @@ changeRoute maybeRoute model =
             ( { model | route = Route.CharacterSelect }, log (Encode.string "CharacterSelect") )
 
         Just (Route.CharacterSheet slug) ->
-            ( { model | route = Route.CharacterSheet slug }, log (Encode.string "CharacterSheet") )
+            ( { model | route = Route.CharacterSheet slug, selectedCharacterId = slug }, log (Encode.string ("CharacterSheet - " ++ slug)) )
 
 
 updateWith : (subModel -> ModelConverter) -> (subMsg -> Msg) -> Model -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )
