@@ -103,7 +103,7 @@ getCriticalHitRoll luck =
 
 derivedStatistics : CharacterData -> Bool -> List (Statistic msg)
 derivedStatistics data encumbered =
-    [ { title = text "Hit Points"
+    [ { title = text "Max Hit Points"
       , content = h3 [] [ text (String.fromInt (getHitpoints data.level data.endurance) ++ " HP") ]
       , tooltip = "How tanky you are (" ++ String.fromInt modifiers.hpBase ++ " + (Level * 5) + (Endurance * 20)"
       }
