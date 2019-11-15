@@ -38,7 +38,7 @@ view { player } =
         , div []
             (Dict.values
                 (Dict.map
-                    (\characterId -> \character -> a [ href (Route.toHref (CharacterSheet characterId)) ] [ text character.name ])
+                    (\characterId -> \character -> a [ href (Route.toHref (CharacterSheet characterId (Just ""))) ] [ text character.name ])
                     player.characters
                 )
             )

@@ -3,12 +3,13 @@ module Route exposing (Route(..), changeRoute, fromUrl, toHref)
 import Json.Encode as Encode
 import Ports exposing (log)
 import Url exposing (Url)
-import Url.Parser as Parser exposing ((</>), Parser, oneOf, s, string)
+import Url.Parser as Parser exposing ((</>), (<?>), Parser, oneOf, s, string)
+import Url.Parser.Query as Query
 
 
 type Route
     = CharacterSelect
-    | CharacterSheet String
+    | CharacterSheet String (Maybe String)
     | CreateCharacter
 
 
@@ -17,7 +18,7 @@ parser =
     oneOf
         [ Parser.map CharacterSelect Parser.top
         , Parser.map CharacterSelect (s "characters")
-        , Parser.map CharacterSheet (s "character" </> string)
+        , Parser.map CharacterSheet (s "character" </> string <?> Query.string "tab")
         , Parser.map CreateCharacter (s "createCharacter")
         ]
 
@@ -33,8 +34,13 @@ toHref route =
         CharacterSelect ->
             "/characters"
 
-        CharacterSheet slug ->
-            "/character/" ++ slug
+        CharacterSheet slug tab ->
+            case tab of
+                Just tabName ->
+                    "/character/" ++ slug ++ "?tab=" ++ tabName
+
+                Nothing ->
+                    "/character/" ++ slug
 
         CreateCharacter ->
             "/createCharacter"
@@ -48,8 +54,13 @@ routeToString page =
                 CharacterSelect ->
                     [ "characters" ]
 
-                CharacterSheet slug ->
-                    [ "character", slug ]
+                CharacterSheet slug tab ->
+                    case tab of
+                        Just tabName ->
+                            [ "character", slug, tabName ]
+
+                        Nothing ->
+                            [ "character", slug ]
 
                 CreateCharacter ->
                     [ "createCharacter" ]
@@ -57,7 +68,7 @@ routeToString page =
     "#/" ++ String.join "/" pieces
 
 
-changeRoute : Maybe Route -> { a | route : Route, selectedCharacterId : String } -> ( { a | route : Route, selectedCharacterId : String }, Cmd msg )
+changeRoute : Maybe Route -> { a | route : Route, selectedCharacterId : String, selectedTab : String } -> ( { a | route : Route, selectedCharacterId : String, selectedTab : String }, Cmd msg )
 changeRoute maybeRoute model =
     case maybeRoute of
         Nothing ->
@@ -66,8 +77,8 @@ changeRoute maybeRoute model =
         Just CharacterSelect ->
             ( { model | route = CharacterSelect }, log (Encode.string "CharacterSelect") )
 
-        Just (CharacterSheet slug) ->
-            ( { model | route = CharacterSheet slug, selectedCharacterId = slug }, log (Encode.string ("CharacterSheet - " ++ slug)) )
+        Just (CharacterSheet slug tab) ->
+            ( { model | route = CharacterSheet slug tab, selectedCharacterId = slug, selectedTab = Maybe.withDefault "" tab }, log (Encode.string ("CharacterSheet - " ++ slug)) )
 
         Just CreateCharacter ->
             ( { model | route = CreateCharacter }, log (Encode.string "CreateCharacter") )

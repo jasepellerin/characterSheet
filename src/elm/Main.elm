@@ -28,14 +28,15 @@ type alias Model =
     , route : Route
     , player : Player
     , selectedCharacterId : String
+    , selectedTab : String
     , urlBuilder : UrlBuilder
     }
 
 
 type ModelConverter
-    = CharacterSelectConverter (CharacterSelect.Model { route : Route, navKey : Nav.Key })
+    = CharacterSelectConverter (CharacterSelect.Model { route : Route, navKey : Nav.Key, selectedTab : String })
     | CharacterSheetConverter (CharacterSheet.Model { route : Route, navKey : Nav.Key })
-    | CreateCharacterConverter (CreateCharacter.Model { navKey : Nav.Key })
+    | CreateCharacterConverter (CreateCharacter.Model { navKey : Nav.Key, selectedTab : String })
 
 
 convertModel : Model -> ModelConverter -> Model
@@ -63,7 +64,13 @@ init { currentPlayerId } url navKey =
                     Url.Builder.absolute
 
         initialModel =
-            { navKey = navKey, route = Route.CharacterSelect, player = Player currentPlayerId Dict.empty, selectedCharacterId = "", urlBuilder = urlBuilder }
+            { navKey = navKey
+            , route = Route.CharacterSelect
+            , player = Player currentPlayerId Dict.empty
+            , selectedCharacterId = ""
+            , selectedTab = ""
+            , urlBuilder = urlBuilder
+            }
     in
     ( initialModel, getCharactersForPlayer (Initialized url) initialModel )
 
@@ -88,7 +95,7 @@ view model =
         CharacterSelect ->
             makePage GotCharacterSelectMsg (CharacterSelect.view model)
 
-        CharacterSheet slug ->
+        CharacterSheet slug tab ->
             makePage GotCharacterSheetMsg (CharacterSheet.view model)
 
         CreateCharacter ->
@@ -154,22 +161,6 @@ update msg model =
 
         NoOp ->
             ( model, Cmd.none )
-
-
-changeRoute : Maybe Route -> Model -> ( Model, Cmd Msg )
-changeRoute maybeRoute model =
-    case maybeRoute of
-        Nothing ->
-            ( model, log (Encode.string "Not found") )
-
-        Just Route.CharacterSelect ->
-            ( { model | route = Route.CharacterSelect }, log (Encode.string "CharacterSelect") )
-
-        Just (Route.CharacterSheet slug) ->
-            ( { model | route = Route.CharacterSheet slug, selectedCharacterId = slug }, log (Encode.string ("CharacterSheet - " ++ slug)) )
-
-        Just Route.CreateCharacter ->
-            ( { model | route = Route.CreateCharacter }, log (Encode.string "CreateCharacter") )
 
 
 updateWith : (subModel -> ModelConverter) -> (subMsg -> Msg) -> Model -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )

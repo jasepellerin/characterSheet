@@ -5,8 +5,8 @@ import Api.Main as Api
 import Api.UrlBuilder exposing (UrlBuilder)
 import Browser
 import Dict exposing (Dict)
-import Html exposing (Html, button, div, text)
-import Html.Attributes exposing (classList)
+import Html exposing (Html, a, button, div, text)
+import Html.Attributes exposing (classList, href)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Decode
@@ -18,6 +18,7 @@ import Modules.CharacterHeader exposing (characterHeader)
 import Modules.DerivedStatistics exposing (derivedStatistics)
 import Modules.Player exposing (Player)
 import Ports exposing (log)
+import Route exposing (Route(..))
 import Types.CharacterData exposing (CharacterData)
 
 
@@ -32,8 +33,31 @@ type alias Model a =
     { a
         | player : Player
         , selectedCharacterId : String
+        , selectedTab : String
         , urlBuilder : UrlBuilder
     }
+
+
+type Tab
+    = Gear
+    | Info
+    | Skills
+
+
+getTabFromName : String -> Tab
+getTabFromName tabName =
+    case String.toLower tabName of
+        "gear" ->
+            Gear
+
+        "info" ->
+            Info
+
+        "skills" ->
+            Skills
+
+        _ ->
+            Info
 
 
 
@@ -45,13 +69,30 @@ view model =
     let
         { selectedCharacterId, player } =
             model
+
+        selectedTab =
+            getTabFromName model.selectedTab
     in
     { content =
         case Dict.get selectedCharacterId player.characters of
             Just characterData ->
-                [ headerView characterData
-                , derivedStatisticsView characterData
-                ]
+                let
+                    tabContents =
+                        case selectedTab of
+                            Gear ->
+                                [ text "gear" ]
+
+                            Info ->
+                                [ derivedStatisticsView characterData ]
+
+                            Skills ->
+                                [ text "skills" ]
+                in
+                List.append
+                    [ headerView characterData
+                    , tabView selectedCharacterId
+                    ]
+                    tabContents
 
             Nothing ->
                 [ text "No character with this ID was found", button [ onClick GetCharacter ] [ text "Check again" ] ]
@@ -62,6 +103,15 @@ view model =
 headerView : CharacterData -> Html Msg
 headerView characterData =
     characterHeader NoOp NoOp characterData
+
+
+tabView : String -> Html Msg
+tabView selectedCharacterId =
+    div []
+        [ a [ href (Route.toHref (CharacterSheet selectedCharacterId (Just "skills"))) ] [ text "Skills" ]
+        , a [ href (Route.toHref (CharacterSheet selectedCharacterId (Just "info"))) ] [ text "Info" ]
+        , a [ href (Route.toHref (CharacterSheet selectedCharacterId (Just "gear"))) ] [ text "Gear" ]
+        ]
 
 
 derivedStatisticsView : CharacterData -> Html Msg
