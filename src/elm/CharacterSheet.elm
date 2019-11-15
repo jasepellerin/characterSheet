@@ -455,17 +455,7 @@ view historyModel =
                 [ div [ class "loader" ] [ i [ class "spinner la la-radiation-alt la-spin" ] [], span [] [ text "Initializing character sheet..." ] ] ]
 
             False ->
-                [ header []
-                    [ div
-                        [ class "name-container"
-                        , classList [ ( "pointer", canEdit ) ]
-                        , onDoubleClick (getCanEditMessage canEdit (UpdateModel False (EditSection "name")))
-                        ]
-                        [ nameView model ]
-                    , h1 [] [ text ("Level " ++ String.fromInt data.level) ]
-                    , button [ disabled historyModel.saving, classList [ ( "hidden", not (hasUnsavedChanges && canEdit) ) ], onClick saveMessage ] [ text "Save" ]
-                    ]
-                , sheetSection { title = "Special", className = "attributes" }
+                [ sheetSection { title = "Special", className = "attributes" }
                     (List.append
                         (List.map
                             (specialAttributeView canEdit UpdateModel model)
@@ -473,8 +463,6 @@ view historyModel =
                         )
                         [ div [ class "text-center", class skillTotalClasses ] [ text ("Skill total: " ++ String.fromInt (getTotalAttributes data)) ] ]
                     )
-                , sheetSection { title = "Stats", className = "derivedStatistics" }
-                    (List.map (card [ encumberedClasses ]) (derivedStatistics data encumbered))
                 , sheetSection { title = "Gear", className = "additionalInfo" }
                     [ card [ encumberedClasses ]
                         { title = text "Armor Type"

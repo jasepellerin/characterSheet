@@ -14,6 +14,7 @@ import Json.Encode as Encode
 import Modules.Armor exposing (getArmorEnduranceRequirement)
 import Modules.Card exposing (card)
 import Modules.CharacterData exposing (characterDataDecoder, characterDataEncoder)
+import Modules.CharacterHeader exposing (characterHeader)
 import Modules.DerivedStatistics exposing (derivedStatistics)
 import Modules.Player exposing (Player)
 import Ports exposing (log)
@@ -48,7 +49,10 @@ view model =
     { content =
         case Dict.get selectedCharacterId player.characters of
             Just characterData ->
-                characterSheetView characterData
+                div []
+                    [ headerView characterData
+                    , derivedStatisticsView characterData
+                    ]
 
             Nothing ->
                 div [] [ text "No character with this ID was found", button [ onClick GetCharacter ] [ text "Check again" ] ]
@@ -56,8 +60,13 @@ view model =
     }
 
 
-characterSheetView : CharacterData -> Html Msg
-characterSheetView characterData =
+headerView : CharacterData -> Html Msg
+headerView characterData =
+    characterHeader NoOp NoOp characterData
+
+
+derivedStatisticsView : CharacterData -> Html Msg
+derivedStatisticsView characterData =
     let
         encumbered =
             characterData.endurance < getArmorEnduranceRequirement characterData.armorType
@@ -99,11 +108,17 @@ update msg model =
         GotCharacter result ->
             case result of
                 Ok result_ ->
-                    let
-                        updatedCharacters =
-                            Dict.insert model.selectedCharacterId result_ player.characters
-                    in
-                    ( { model | player = { player | characters = updatedCharacters } }, log (Encode.dict identity characterDataEncoder updatedCharacters) )
+                    case result_.playerId == player.id of
+                        True ->
+                            let
+                                updatedCharacters =
+                                    Dict.insert model.selectedCharacterId result_ player.characters
+                            in
+                            ( { model | player = { player | characters = updatedCharacters } }, log (Encode.dict identity characterDataEncoder updatedCharacters) )
+
+                        False ->
+                            -- TODO: Show other player's character without updating current player
+                            ( model, log (Encode.string "Character does not belong to current player") )
 
                 Err error ->
                     case error of
