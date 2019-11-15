@@ -6,11 +6,15 @@ import Api.UrlBuilder exposing (UrlBuilder)
 import Browser
 import Dict exposing (Dict)
 import Html exposing (Html, button, div, text)
+import Html.Attributes exposing (classList)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Modules.Armor exposing (getArmorEnduranceRequirement)
+import Modules.Card exposing (card)
 import Modules.CharacterData exposing (characterDataDecoder, characterDataEncoder)
+import Modules.DerivedStatistics exposing (derivedStatistics)
 import Modules.Player exposing (Player)
 import Ports exposing (log)
 import Types.CharacterData exposing (CharacterData)
@@ -36,16 +40,34 @@ type alias Model a =
 
 
 view : Model a -> { content : Html Msg, title : String }
-view { selectedCharacterId, player } =
+view model =
+    let
+        { selectedCharacterId, player } =
+            model
+    in
     { content =
-        case Dict.member selectedCharacterId player.characters of
-            True ->
-                div [] [ text selectedCharacterId ]
+        case Dict.get selectedCharacterId player.characters of
+            Just characterData ->
+                characterSheetView characterData
 
-            False ->
+            Nothing ->
                 div [] [ text "No character with this ID was found", button [ onClick GetCharacter ] [ text "Check again" ] ]
     , title = "Sheet"
     }
+
+
+characterSheetView : CharacterData -> Html Msg
+characterSheetView characterData =
+    let
+        encumbered =
+            characterData.endurance < getArmorEnduranceRequirement characterData.armorType
+
+        encumberedClasses =
+            classList
+                [ ( "encumbered", encumbered )
+                ]
+    in
+    div [] (List.map (card [ encumberedClasses ]) (derivedStatistics characterData encumbered))
 
 
 
