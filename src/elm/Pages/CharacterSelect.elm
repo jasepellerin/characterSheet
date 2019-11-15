@@ -36,7 +36,6 @@ view { player } =
     { content =
         div []
             [ h1 [] [ text "Your characters" ]
-            , a [ href (Route.toHref CreateCharacter) ] [ text "Create New" ]
             , div []
                 (Dict.values
                     (Dict.map
