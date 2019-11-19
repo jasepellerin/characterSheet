@@ -66,6 +66,9 @@ view model =
                                 [ text "info" ]
 
                             Skills ->
+                                [ text "skills" ]
+
+                            Special ->
                                 [ specialAttributesView characterData ]
 
                             Statistics ->
@@ -132,11 +135,13 @@ type Tab
     = Gear
     | Info
     | Skills
+    | Special
     | Statistics
 
 
 tabNameOrderedList =
-    [ "skills"
+    [ "special"
+    , "skills"
     , "statistics"
     , "gear"
     , "info"
@@ -147,6 +152,7 @@ tabNames =
     Dict.fromList
         [ ( "gear", Gear )
         , ( "info", Info )
+        , ( "special", Special )
         , ( "skills", Skills )
         , ( "statistics", Statistics )
         ]
