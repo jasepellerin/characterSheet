@@ -93,13 +93,15 @@ headerView characterData =
 
 tabView : String -> String -> Html Msg
 tabView selectedCharacterId selectedTab =
+    let
+        getTab tabName =
+            Dict.get tabName tabNames
+
+        singleTabView tabName =
+            a [ classList [ ( "active", selectedTab == tabName ) ], href (Route.toHref (CharacterSheet selectedCharacterId (Just tabName))) ] [ text (capitalizeFirstLetter tabName) ]
+    in
     div []
-        (Dict.values
-            (Dict.map
-                (\tabName -> \_ -> a [ classList [ ( "active", selectedTab == tabName ) ], href (Route.toHref (CharacterSheet selectedCharacterId (Just tabName))) ] [ text (capitalizeFirstLetter tabName) ])
-                tabNames
-            )
-        )
+        (List.map singleTabView tabNameOrderedList)
 
 
 derivedStatisticsView : CharacterData -> Html Msg
@@ -125,6 +127,14 @@ type Tab
     | Info
     | Skills
     | Statistics
+
+
+tabNameOrderedList =
+    [ "skills"
+    , "statistics"
+    , "gear"
+    , "info"
+    ]
 
 
 tabNames =

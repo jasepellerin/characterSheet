@@ -78,7 +78,7 @@ changeRoute maybeRoute model =
             ( { model | route = CharacterSelect }, log (Encode.string "CharacterSelect") )
 
         Just (CharacterSheet slug tab) ->
-            ( { model | route = CharacterSheet slug tab, selectedCharacterId = slug, selectedTab = Maybe.withDefault "" tab }, log (Encode.string ("CharacterSheet - " ++ slug)) )
+            ( { model | route = CharacterSheet slug tab, selectedCharacterId = slug, selectedTab = Maybe.withDefault "statistics" tab }, log (Encode.string ("CharacterSheet - " ++ slug)) )
 
         Just CreateCharacter ->
             ( { model | route = CreateCharacter }, log (Encode.string "CreateCharacter") )
