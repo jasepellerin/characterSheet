@@ -16,6 +16,7 @@ import Modules.Card exposing (card)
 import Modules.CharacterData exposing (characterDataDecoder, characterDataEncoder)
 import Modules.DerivedStatistics exposing (derivedStatistics)
 import Modules.Player exposing (Player)
+import Modules.SpecialAttribute exposing (specialAttributeNames, specialAttributeView)
 import Pages.CharacterSheet.CharacterHeader exposing (characterHeader)
 import Ports exposing (log)
 import Route exposing (Route(..))
@@ -65,7 +66,7 @@ view model =
                                 [ text "info" ]
 
                             Skills ->
-                                [ text "skills" ]
+                                [ specialAttributesView characterData ]
 
                             Statistics ->
                                 [ derivedStatisticsView characterData ]
@@ -102,6 +103,11 @@ tabView selectedCharacterId selectedTab =
     in
     div []
         (List.map singleTabView tabNameOrderedList)
+
+
+specialAttributesView : CharacterData -> Html Msg
+specialAttributesView characterData =
+    div [] (List.map (specialAttributeView False characterData) specialAttributeNames)
 
 
 derivedStatisticsView : CharacterData -> Html Msg

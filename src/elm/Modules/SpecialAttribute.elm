@@ -1,4 +1,4 @@
-module Modules.SpecialAttribute exposing (SpecialAttribute, SpecialAttributeMsg(..), getAttributeModifier, getAttributeValueFromNameWithDefault, getSpecialAttribute, specialAttributeNames)
+module Modules.SpecialAttribute exposing (SpecialAttribute, SpecialAttributeMsg(..), getAttributeModifier, getAttributeValueFromNameWithDefault, getSpecialAttribute, specialAttributeNames, specialAttributeView)
 
 import Data.Modifiers exposing (modifiers)
 import Dict exposing (Dict)
@@ -67,8 +67,8 @@ getAttributeModifier attributeScore =
     attributeScore - modifiers.attributeToMod
 
 
-specialAttributeView : Bool -> (Bool -> msg) -> { a | characterData : CharacterData, editing : String } -> String -> Html msg
-specialAttributeView canEdit historyMsg model specialAttributeName =
+specialAttributeView : Bool -> CharacterData -> String -> Html msg
+specialAttributeView editing characterData specialAttributeName =
     let
         specialAttribute =
             getSpecialAttribute specialAttributeName
@@ -76,26 +76,35 @@ specialAttributeView canEdit historyMsg model specialAttributeName =
         ( specialAttributeValue, specialAttributeTooltip, specialAttributeMsg ) =
             case specialAttribute of
                 Just specialAttribute_ ->
-                    ( specialAttribute_.accessor model.characterData, specialAttribute_.tooltip, specialAttribute_.msg )
+                    ( specialAttribute_.accessor characterData, specialAttribute_.tooltip, specialAttribute_.msg )
 
                 Nothing ->
                     ( -1, "", AttributeNoOp )
+
+        modifier =
+            getAttributeModifier specialAttributeValue
+
+        modifierPrefix =
+            case modifier >= 0 of
+                True ->
+                    "+"
+
+                False ->
+                    ""
 
         sharedAttributeView : List (Html.Attribute msg) -> Html msg -> Html msg
         sharedAttributeView attributeList attributeElement =
             card
                 (List.append
-                    [ class "attribute"
-                    , classList [ ( "pointer", canEdit ) ]
-                    ]
+                    [ class "attribute" ]
                     attributeList
                 )
                 { title = text (capitalizeFirstLetter specialAttributeName)
-                , tooltip = specialAttributeTooltip ++ " Modifier is " ++ String.fromInt (getAttributeModifier specialAttributeValue)
+                , tooltip = specialAttributeTooltip ++ " Modifier is " ++ modifierPrefix ++ String.fromInt modifier
                 , content = attributeElement
                 }
     in
-    if specialAttributeName == model.editing then
+    if editing then
         sharedAttributeView []
             (input [ id specialAttributeName, type_ "number", maxlength 2, placeholder (String.fromInt specialAttributeValue) ] [])
 
