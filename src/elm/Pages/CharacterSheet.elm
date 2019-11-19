@@ -55,9 +55,9 @@ view model =
         selectedTab =
             getTabFromName model.selectedTab
     in
-    { content =
-        case Dict.get selectedCharacterId player.characters of
-            Just characterData ->
+    case Dict.get selectedCharacterId player.characters of
+        Just characterData ->
+            { content =
                 let
                     isEncumbered =
                         characterData.endurance < getArmorEnduranceRequirement characterData.armorType
@@ -87,11 +87,13 @@ view model =
                     , tabView selectedCharacterId model.selectedTab
                     ]
                     tabContents
+            , title = characterData.name ++ " - " ++ capitalizeFirstLetter model.selectedTab
+            }
 
-            Nothing ->
-                [ text "No character with this ID was found", button [ onClick GetCharacter ] [ text "Check again" ] ]
-    , title = "Sheet"
-    }
+        Nothing ->
+            { content = [ text "No character with this ID was found", button [ onClick GetCharacter ] [ text "Check again" ] ]
+            , title = "Character not found"
+            }
 
 
 
