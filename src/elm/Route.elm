@@ -11,6 +11,7 @@ type Route
     = CharacterSelect
     | CharacterSheet String (Maybe String)
     | CreateCharacter
+    | Loading
 
 
 parser : Parser (Route -> a) a
@@ -45,6 +46,9 @@ toHref route =
         CreateCharacter ->
             "/createCharacter"
 
+        Loading ->
+            ""
+
 
 routeToString : Route -> String
 routeToString page =
@@ -64,6 +68,9 @@ routeToString page =
 
                 CreateCharacter ->
                     [ "createCharacter" ]
+
+                Loading ->
+                    [ "" ]
     in
     "#/" ++ String.join "/" pieces
 
@@ -82,3 +89,6 @@ changeRoute maybeRoute model =
 
         Just CreateCharacter ->
             ( { model | route = CreateCharacter }, log (Encode.string "CreateCharacter") )
+
+        Just Loading ->
+            ( { model | route = Loading }, log (Encode.string "Loading") )

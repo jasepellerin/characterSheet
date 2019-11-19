@@ -12,6 +12,7 @@ import Modules.Player exposing (Player, getCharactersForPlayer)
 import Pages.CharacterSelect as CharacterSelect
 import Pages.CharacterSheet as CharacterSheet
 import Pages.CreateCharacter as CreateCharacter
+import Pages.Loading as Loading
 import Ports exposing (log)
 import Route exposing (Route(..), changeRoute, fromUrl)
 import Types.CharacterData exposing (CharacterData)
@@ -65,7 +66,7 @@ init { currentPlayerId } url navKey =
 
         initialModel =
             { navKey = navKey
-            , route = Route.CharacterSelect
+            , route = Route.Loading
             , player = Player currentPlayerId Dict.empty
             , selectedCharacterId = ""
             , selectedTab = ""
@@ -100,6 +101,9 @@ view model =
 
         CreateCharacter ->
             makePage GotCreateCharacterMsg (CreateCharacter.view model)
+
+        Loading ->
+            makePage (\msg -> NoOp) Loading.view
 
 
 
