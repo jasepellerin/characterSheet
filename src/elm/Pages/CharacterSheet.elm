@@ -18,6 +18,7 @@ import Modules.DerivedStatistics exposing (derivedStatistics)
 import Modules.Player exposing (Player)
 import Modules.SpecialAttribute exposing (specialAttributeNames, specialAttributeView)
 import Pages.CharacterSheet.CharacterHeader exposing (characterHeader)
+import Pages.CharacterSheet.Gear exposing (gearView)
 import Pages.CharacterSheet.Skills exposing (skillsView)
 import Ports exposing (log)
 import Route exposing (Route(..))
@@ -58,10 +59,16 @@ view model =
         case Dict.get selectedCharacterId player.characters of
             Just characterData ->
                 let
+                    isEncumbered =
+                        characterData.endurance < getArmorEnduranceRequirement characterData.armorType
+
+                    encumberedClasses =
+                        [ ( "encumbered", isEncumbered ) ]
+
                     tabContents =
                         case selectedTab of
                             Gear ->
-                                [ text "gear" ]
+                                [ gearView encumberedClasses characterData ]
 
                             Info ->
                                 [ text "info" ]

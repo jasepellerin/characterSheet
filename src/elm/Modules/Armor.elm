@@ -1,4 +1,4 @@
-module Modules.Armor exposing (Armor, armors, getArmorEnduranceRequirement, getMaybeArmor)
+module Modules.Armor exposing (Armor, armors, getArmorEnduranceRequirement, getArmorListOrderedByArmorClass, getMaybeArmor)
 
 import Dict exposing (Dict)
 
@@ -33,3 +33,8 @@ getArmorEnduranceRequirement armorType =
 
         Nothing ->
             0
+
+
+getArmorListOrderedByArmorClass : Dict String Armor -> List ( String, Armor )
+getArmorListOrderedByArmorClass armorList =
+    List.sortBy (\armorTuple -> .armorClass (Tuple.second armorTuple)) (Dict.toList armorList)
