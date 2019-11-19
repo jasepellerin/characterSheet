@@ -18,10 +18,11 @@ import Modules.DerivedStatistics exposing (derivedStatistics)
 import Modules.Player exposing (Player)
 import Modules.SpecialAttribute exposing (specialAttributeNames, specialAttributeView)
 import Pages.CharacterSheet.CharacterHeader exposing (characterHeader)
+import Pages.CharacterSheet.Skills exposing (skillsView)
 import Ports exposing (log)
 import Route exposing (Route(..))
 import Types.CharacterData exposing (CharacterData)
-import Utils.CapitalizeFirstLetter exposing (capitalizeFirstLetter)
+import Utils.String exposing (capitalizeFirstLetter)
 
 
 port setLocalData : Encode.Value -> Cmd msg
@@ -66,7 +67,7 @@ view model =
                                 [ text "info" ]
 
                             Skills ->
-                                [ text "skills" ]
+                                [ skillsView characterData ]
 
                             Special ->
                                 [ specialAttributesView characterData ]

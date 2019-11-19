@@ -6,7 +6,7 @@ import Html exposing (Html, h3, input, text)
 import Html.Attributes exposing (class, classList, id, maxlength, placeholder, type_)
 import Modules.Card exposing (card)
 import Types.CharacterData exposing (CharacterData)
-import Utils.CapitalizeFirstLetter exposing (capitalizeFirstLetter)
+import Utils.String exposing (capitalizeFirstLetter)
 
 
 type SpecialAttributeMsg
