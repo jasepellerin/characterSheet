@@ -11,6 +11,7 @@ import Modules.CharacterData exposing (characterDataEncoder)
 import Modules.Player exposing (Player, getCharactersForPlayer)
 import Pages.CharacterSelect as CharacterSelect
 import Pages.CharacterSheet as CharacterSheet
+import Pages.CharacterSheet.Msg as CharacterSheetMsg
 import Pages.CreateCharacter as CreateCharacter
 import Pages.Loading as Loading
 import Ports exposing (log)
@@ -114,7 +115,7 @@ type Msg
     = ChangedUrl Url
     | ClickedLink Browser.UrlRequest
     | GotCharacterSelectMsg CharacterSelect.Msg
-    | GotCharacterSheetMsg CharacterSheet.Msg
+    | GotCharacterSheetMsg CharacterSheetMsg.Msg
     | GotCreateCharacterMsg CreateCharacter.Msg
     | Initialized Url (Result Http.Error (Dict String CharacterData))
     | NoOp

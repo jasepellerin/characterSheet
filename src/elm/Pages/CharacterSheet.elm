@@ -1,4 +1,4 @@
-port module Pages.CharacterSheet exposing (Model, Msg, update, view)
+port module Pages.CharacterSheet exposing (Model, update, view)
 
 import Api.Endpoint as Endpoint
 import Api.Main as Api
@@ -19,6 +19,7 @@ import Modules.Player exposing (Player)
 import Modules.SpecialAttribute exposing (specialAttributeNames, specialAttributeView)
 import Pages.CharacterSheet.CharacterHeader exposing (characterHeader)
 import Pages.CharacterSheet.Gear exposing (gearView)
+import Pages.CharacterSheet.Msg exposing (Msg(..))
 import Pages.CharacterSheet.Skills exposing (skillsView)
 import Ports exposing (log)
 import Route exposing (Route(..))
@@ -77,13 +78,13 @@ view model =
                                 [ skillsView characterData ]
 
                             Special ->
-                                [ specialAttributesView characterData ]
+                                [ div [] (List.map (specialAttributeView False characterData) specialAttributeNames) ]
 
                             Statistics ->
-                                [ derivedStatisticsView characterData ]
+                                [ div [] (List.map (card [ classList encumberedClasses ]) (derivedStatistics characterData isEncumbered)) ]
                 in
                 List.append
-                    [ headerView characterData
+                    [ characterHeader characterData
                     , tabView selectedCharacterId model.selectedTab
                     ]
                     tabContents
@@ -100,11 +101,6 @@ view model =
 -- SUBVIEWS
 
 
-headerView : CharacterData -> Html Msg
-headerView characterData =
-    characterHeader NoOp NoOp characterData
-
-
 tabView : String -> String -> Html Msg
 tabView selectedCharacterId selectedTab =
     let
@@ -116,25 +112,6 @@ tabView selectedCharacterId selectedTab =
     in
     div []
         (List.map singleTabView tabNameOrderedList)
-
-
-specialAttributesView : CharacterData -> Html Msg
-specialAttributesView characterData =
-    div [] (List.map (specialAttributeView False characterData) specialAttributeNames)
-
-
-derivedStatisticsView : CharacterData -> Html Msg
-derivedStatisticsView characterData =
-    let
-        encumbered =
-            characterData.endurance < getArmorEnduranceRequirement characterData.armorType
-
-        encumberedClasses =
-            classList
-                [ ( "encumbered", encumbered )
-                ]
-    in
-    div [] (List.map (card [ encumberedClasses ]) (derivedStatistics characterData encumbered))
 
 
 
@@ -189,13 +166,6 @@ getCharacter { selectedCharacterId, urlBuilder } =
 
 
 -- UPDATE
-
-
-type Msg
-    = GetCharacter
-    | GotCharacter (Result Http.Error CharacterData)
-    | HandleChange CharacterData
-    | NoOp
 
 
 update : Msg -> Model a -> ( Model a, Cmd Msg )
