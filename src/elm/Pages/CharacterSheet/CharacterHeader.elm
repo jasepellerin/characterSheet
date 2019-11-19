@@ -1,4 +1,4 @@
-module Modules.CharacterHeader exposing (characterHeader)
+module Pages.CharacterSheet.CharacterHeader exposing (characterHeader)
 
 import Html exposing (Html, button, div, h1, header, input, text)
 import Html.Attributes exposing (class)
