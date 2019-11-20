@@ -13,7 +13,7 @@ import Json.Encode as Encode
 import Modules.CharacterData exposing (characterDataEncoder)
 import Modules.Player exposing (Player)
 import Ports exposing (log)
-import Route exposing (Route(..), changeRoute)
+import Session exposing (Session)
 import Types.CharacterData exposing (CharacterData)
 
 
@@ -24,12 +24,10 @@ port setLocalData : Encode.Value -> Cmd msg
 -- MODEL
 
 
-type alias Model a =
-    { a
-        | player : Player
-        , route : Route
-        , selectedCharacterId : String
-        , urlBuilder : UrlBuilder
+type alias Model =
+    { player : Player
+    , selectedCharacterId : String
+    , session : Session
     }
 
 
@@ -37,7 +35,7 @@ type alias Model a =
 -- VIEW
 
 
-view : Model a -> { content : List (Html Msg), title : String }
+view : Model -> { content : List (Html Msg), title : String }
 view { player } =
     { content =
         [ text "Creating Character" ]
@@ -55,11 +53,11 @@ type Msg
     | NoOp
 
 
-update : Msg -> Model a -> ( Model a, Cmd Msg )
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         CreateCharacter ->
-            ( model, createCharacter GotCharacter model )
+            ( model, createCharacter GotCharacter model.session )
 
         GotCharacter result ->
             let

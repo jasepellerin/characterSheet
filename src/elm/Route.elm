@@ -1,4 +1,4 @@
-module Route exposing (Route(..), changeRoute, fromUrl, toHref)
+module Route exposing (Route(..), fromUrl, toHref)
 
 import Json.Encode as Encode
 import Ports exposing (log)
@@ -73,22 +73,3 @@ routeToString page =
                     [ "" ]
     in
     "#/" ++ String.join "/" pieces
-
-
-changeRoute : Maybe Route -> { a | route : Route, selectedCharacterId : String, selectedTab : String } -> ( { a | route : Route, selectedCharacterId : String, selectedTab : String }, Cmd msg )
-changeRoute maybeRoute model =
-    case maybeRoute of
-        Nothing ->
-            ( model, log (Encode.string "Not found") )
-
-        Just CharacterSelect ->
-            ( { model | route = CharacterSelect }, log (Encode.string "CharacterSelect") )
-
-        Just (CharacterSheet slug tab) ->
-            ( { model | route = CharacterSheet slug tab, selectedCharacterId = slug, selectedTab = Maybe.withDefault "statistics" tab }, log (Encode.string ("CharacterSheet - " ++ slug)) )
-
-        Just CreateCharacter ->
-            ( { model | route = CreateCharacter }, log (Encode.string "CreateCharacter") )
-
-        Just Loading ->
-            ( { model | route = Loading }, log (Encode.string "Loading") )

@@ -29,6 +29,6 @@ characterListDecoder =
     Decode.map Dict.fromList (Decode.list (Decode.map2 (\key -> \value -> ( key, value )) (Decode.at [ "ref", "@ref", "id" ] Decode.string) (characterDataDecoder "data")))
 
 
-getCharactersForPlayer : (Result Http.Error (Dict String CharacterData) -> msg) -> { a | player : Player, selectedCharacterId : String, urlBuilder : UrlBuilder } -> Cmd msg
-getCharactersForPlayer msg { player, selectedCharacterId, urlBuilder } =
+getCharactersForPlayer : (Result Http.Error (Dict String CharacterData) -> msg) -> { a | player : Player, urlBuilder : UrlBuilder } -> Cmd msg
+getCharactersForPlayer msg { player, urlBuilder } =
     Api.get (Endpoint.getCharactersForPlayer urlBuilder player.id) msg (Decode.field "data" characterListDecoder)

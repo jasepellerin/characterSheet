@@ -1,4 +1,4 @@
-port module Pages.CharacterSheet exposing (Model, update, view)
+port module Pages.CharacterSheet exposing (Model, init, update, view)
 
 import Api.Endpoint as Endpoint
 import Api.Main as Api
@@ -15,7 +15,6 @@ import Modules.Armor exposing (getArmorEnduranceRequirement)
 import Modules.Card exposing (card)
 import Modules.CharacterData exposing (characterDataDecoder, characterDataEncoder)
 import Modules.DerivedStatistics exposing (derivedStatistics)
-import Modules.Player exposing (Player)
 import Modules.SpecialAttribute exposing (specialAttributeNames, specialAttributeView)
 import Pages.CharacterSheet.CharacterHeader exposing (characterHeader)
 import Pages.CharacterSheet.Gear exposing (gearView)
@@ -23,6 +22,7 @@ import Pages.CharacterSheet.Msg exposing (Msg(..))
 import Pages.CharacterSheet.Skills exposing (skillsView)
 import Ports exposing (log)
 import Route exposing (Route(..))
+import Session exposing (Session)
 import Types.CharacterData exposing (CharacterData)
 import Utils.String exposing (capitalizeFirstLetter)
 
@@ -34,24 +34,35 @@ port setLocalData : Encode.Value -> Cmd msg
 -- MODEL
 
 
-type alias Model a =
-    { a
-        | player : Player
-        , selectedCharacterId : String
-        , selectedTab : String
-        , urlBuilder : UrlBuilder
+type alias Model =
+    { session : Session
+    , selectedCharacterId : String
+    , selectedTab : String
     }
+
+
+init : Session -> String -> Maybe String -> ( Model, Cmd msg )
+init session selectedCharacterId selectedTab =
+    ( { session = session
+      , selectedCharacterId = selectedCharacterId
+      , selectedTab = Maybe.withDefault "statistics" selectedTab
+      }
+    , Cmd.none
+    )
 
 
 
 -- VIEW
 
 
-view : Model a -> { content : List (Html Msg), title : String }
+view : Model -> { content : List (Html Msg), title : String }
 view model =
     let
-        { selectedCharacterId, player } =
+        { selectedCharacterId, session } =
             model
+
+        { player } =
+            session
 
         selectedTab =
             getTabFromName model.selectedTab
@@ -156,27 +167,24 @@ getTabFromName tabName =
 
 
 
--- API
-
-
-getCharacter : Model a -> Cmd Msg
-getCharacter { selectedCharacterId, urlBuilder } =
-    Api.get (Endpoint.getCharacter urlBuilder selectedCharacterId) GotCharacter (Decode.field "data" (characterDataDecoder ""))
-
-
-
 -- UPDATE
 
 
-update : Msg -> Model a -> ( Model a, Cmd Msg )
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
+        session =
+            model.session
+
         player =
-            model.player
+            session.player
     in
     case msg of
+        Edit ->
+            ( model, Cmd.none )
+
         GetCharacter ->
-            ( model, getCharacter model )
+            ( model, Cmd.none )
 
         GotCharacter result ->
             case result of
@@ -187,7 +195,7 @@ update msg model =
                                 updatedCharacters =
                                     Dict.insert model.selectedCharacterId result_ player.characters
                             in
-                            ( { model | player = { player | characters = updatedCharacters } }, log (Encode.dict identity characterDataEncoder updatedCharacters) )
+                            ( { model | session = { session | player = { player | characters = updatedCharacters } } }, log (Encode.dict identity characterDataEncoder updatedCharacters) )
 
                         False ->
                             -- TODO: Show other player's character without updating current player
@@ -204,9 +212,9 @@ update msg model =
         HandleChange newData ->
             let
                 updatedCharacters =
-                    Dict.insert model.selectedCharacterId newData model.player.characters
+                    Dict.insert model.selectedCharacterId newData player.characters
             in
-            ( { model | player = { player | characters = updatedCharacters } }, setLocalData (Encode.dict identity characterDataEncoder updatedCharacters) )
+            ( { model | session = { session | player = { player | characters = updatedCharacters } } }, setLocalData (Encode.dict identity characterDataEncoder updatedCharacters) )
 
         NoOp ->
             ( model, Cmd.none )
