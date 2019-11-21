@@ -7,16 +7,16 @@ import Pages.CharacterSheet.Msg exposing (Msg(..))
 import Types.CharacterData exposing (CharacterData)
 
 
-characterHeader : CharacterData -> Html msg
+characterHeader : CharacterData -> Html Msg
 characterHeader characterData =
     header []
         [ div [ class "name-container" ]
             [ nameView characterData.name ]
         , h1 [] [ text ("Level " ++ String.fromInt characterData.level) ]
-        , button [] [ text "Edit" ]
+        , button [ onClick Edit ] [ text "Edit" ]
         ]
 
 
-nameView : String -> Html msg
+nameView : String -> Html Msg
 nameView name =
     h1 [] [ text name ]

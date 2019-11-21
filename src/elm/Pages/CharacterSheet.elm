@@ -23,7 +23,7 @@ import Pages.CharacterSheet.Skills exposing (skillsView)
 import Ports exposing (log)
 import Route exposing (Route(..))
 import Session exposing (Session)
-import Types.CharacterData exposing (CharacterData)
+import Types.CharacterData exposing (CharacterData, defaultCharacterData)
 import Utils.String exposing (capitalizeFirstLetter)
 
 
@@ -38,16 +38,31 @@ type alias Model =
     { session : Session
     , selectedCharacterId : String
     , selectedTab : String
+    , internalCharacterData : Maybe CharacterData
     }
 
 
 init : Session -> String -> Maybe String -> ( Model, Cmd msg )
 init session selectedCharacterId selectedTab =
+    let
+        playerCharacterData =
+            Dict.get selectedCharacterId session.player.characters
+
+        cmd =
+            case playerCharacterData of
+                Just _ ->
+                    Cmd.none
+
+                -- TODO: Get character
+                Nothing ->
+                    Cmd.none
+    in
     ( { session = session
       , selectedCharacterId = selectedCharacterId
       , selectedTab = Maybe.withDefault "statistics" selectedTab
+      , internalCharacterData = playerCharacterData
       }
-    , Cmd.none
+    , cmd
     )
 
 
@@ -58,7 +73,7 @@ init session selectedCharacterId selectedTab =
 view : Model -> { content : List (Html Msg), title : String }
 view model =
     let
-        { selectedCharacterId, session } =
+        { selectedCharacterId, session, internalCharacterData } =
             model
 
         { player } =
@@ -67,7 +82,7 @@ view model =
         selectedTab =
             getTabFromName model.selectedTab
     in
-    case Dict.get selectedCharacterId player.characters of
+    case internalCharacterData of
         Just characterData ->
             { content =
                 let
@@ -102,6 +117,7 @@ view model =
             , title = characterData.name ++ " - " ++ capitalizeFirstLetter model.selectedTab
             }
 
+        -- TODO: Create character or go home
         Nothing ->
             { content = [ text "No character with this ID was found", button [ onClick GetCharacter ] [ text "Check again" ] ]
             , title = "Character not found"
@@ -180,6 +196,9 @@ update msg model =
             session.player
     in
     case msg of
+        ChangeName ->
+            ( model, Cmd.none )
+
         Edit ->
             ( model, Cmd.none )
 

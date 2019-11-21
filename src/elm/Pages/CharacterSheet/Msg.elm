@@ -6,6 +6,7 @@ import Types.CharacterData exposing (CharacterData)
 
 type Msg
     = Edit
+    | ChangeName
     | GetCharacter
     | GotCharacter (Result Http.Error CharacterData)
     | HandleChange CharacterData
